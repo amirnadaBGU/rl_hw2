@@ -9,10 +9,9 @@ domain bandit_domain {
         // Constants
         NUMBER_OF_ARMS: {non-fluent, real, default = 10.0};
         ARM_NUM(arm) : {non-fluent, real, default = 0.0};
-        PROB_VAL(arm): {non-fluent, real, default = 0.5};
 
         // Intermediate Fluents
-        prob(arm):   {interm-fluent, real};
+        prob_val(arm): {interm-fluent, real};
 
         // State Fluents
         chosen(arm): {state-fluent, bool, default = false};
@@ -26,7 +25,7 @@ domain bandit_domain {
     };
 
     cpfs {
-        prob(?a) =  Bernoulli(PROB_VAL(?a));
+        prob_val(?a) = 1/(ARM_NUM(?a) + 1);
         chosen'(?a) = roll(?a);
 
 
@@ -36,5 +35,7 @@ domain bandit_domain {
         //total_reward(arm), = total_reward(arm) + (if chosen(?a) then reward_val else 0.0);
     };
 
-    reward = 1;
+    reward = Bernoulli(
+    sum_{?a : arm} (if (roll(?a)) then prob_val(?a) else 0.0)
+    );
 }

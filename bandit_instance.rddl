@@ -6,14 +6,120 @@ instance bandit_instance {
     domain = bandit_domain;
 
     objects {
-        arm : {a1, a2};
+        arm : {a1, a2, a3, a4, a5, a6, a7, a8, a9, a10,
+         a11, a12, a13, a14, a15, a16, a17, a18, a19, a20,
+          a21, a22, a23, a24, a25, a26, a27, a28, a29, a30,
+           a31, a32, a33, a34, a35, a36, a37, a38, a39, a40,
+            a41, a42, a43, a44, a45, a46, a47, a48, a49, a50,
+             a51, a52, a53, a54, a55, a56, a57, a58, a59, a60,
+              a61, a62, a63, a64, a65, a66, a67, a68, a69, a70,
+               a71, a72, a73, a74, a75, a76, a77, a78, a79, a80,
+                a81, a82, a83, a84, a85, a86, a87, a88, a89, a90,
+                 a91, a92, a93, a94, a95, a96, a97, a98, a99, a100};
     };
 
-   non-fluents {
-    ARM_NUM(a1) = 1.0;
-    ARM_NUM(a2) = 2.0;
-
-    NUMBER_OF_ARMS = 2.0;
+    non-fluents {
+        NUMBER_OF_ARMS = 100.0;
+        ARM_NUM(a1) = 1.0;
+        ARM_NUM(a2) = 2.0;
+        ARM_NUM(a3) = 3.0;
+        ARM_NUM(a4) = 4.0;
+        ARM_NUM(a5) = 5.0;
+        ARM_NUM(a6) = 6.0;
+        ARM_NUM(a7) = 7.0;
+        ARM_NUM(a8) = 8.0;
+        ARM_NUM(a9) = 9.0;
+        ARM_NUM(a10) = 10.0;
+        ARM_NUM(a11) = 11.0;
+        ARM_NUM(a12) = 12.0;
+        ARM_NUM(a13) = 13.0;
+        ARM_NUM(a14) = 14.0;
+        ARM_NUM(a15) = 15.0;
+        ARM_NUM(a16) = 16.0;
+        ARM_NUM(a17) = 17.0;
+        ARM_NUM(a18) = 18.0;
+        ARM_NUM(a19) = 19.0;
+        ARM_NUM(a20) = 20.0;
+        ARM_NUM(a21) = 21.0;
+        ARM_NUM(a22) = 22.0;
+        ARM_NUM(a23) = 23.0;
+        ARM_NUM(a24) = 24.0;
+        ARM_NUM(a25) = 25.0;
+        ARM_NUM(a26) = 26.0;
+        ARM_NUM(a27) = 27.0;
+        ARM_NUM(a28) = 28.0;
+        ARM_NUM(a29) = 29.0;
+        ARM_NUM(a30) = 30.0;
+        ARM_NUM(a31) = 31.0;
+        ARM_NUM(a32) = 32.0;
+        ARM_NUM(a33) = 33.0;
+        ARM_NUM(a34) = 34.0;
+        ARM_NUM(a35) = 35.0;
+        ARM_NUM(a36) = 36.0;
+        ARM_NUM(a37) = 37.0;
+        ARM_NUM(a38) = 38.0;
+        ARM_NUM(a39) = 39.0;
+        ARM_NUM(a40) = 40.0;
+        ARM_NUM(a41) = 41.0;
+        ARM_NUM(a42) = 42.0;
+        ARM_NUM(a43) = 43.0;
+        ARM_NUM(a44) = 44.0;
+        ARM_NUM(a45) = 45.0;
+        ARM_NUM(a46) = 46.0;
+        ARM_NUM(a47) = 47.0;
+        ARM_NUM(a48) = 48.0;
+        ARM_NUM(a49) = 49.0;
+        ARM_NUM(a50) = 50.0;
+        ARM_NUM(a51) = 51.0;
+        ARM_NUM(a52) = 52.0;
+        ARM_NUM(a53) = 53.0;
+        ARM_NUM(a54) = 54.0;
+        ARM_NUM(a55) = 55.0;
+        ARM_NUM(a56) = 56.0;
+        ARM_NUM(a57) = 57.0;
+        ARM_NUM(a58) = 58.0;
+        ARM_NUM(a59) = 59.0;
+        ARM_NUM(a60) = 60.0;
+        ARM_NUM(a61) = 61.0;
+        ARM_NUM(a62) = 62.0;
+        ARM_NUM(a63) = 63.0;
+        ARM_NUM(a64) = 64.0;
+        ARM_NUM(a65) = 65.0;
+        ARM_NUM(a66) = 66.0;
+        ARM_NUM(a67) = 67.0;
+        ARM_NUM(a68) = 68.0;
+        ARM_NUM(a69) = 69.0;
+        ARM_NUM(a70) = 70.0;
+        ARM_NUM(a71) = 71.0;
+        ARM_NUM(a72) = 72.0;
+        ARM_NUM(a73) = 73.0;
+        ARM_NUM(a74) = 74.0;
+        ARM_NUM(a75) = 75.0;
+        ARM_NUM(a76) = 76.0;
+        ARM_NUM(a77) = 77.0;
+        ARM_NUM(a78) = 78.0;
+        ARM_NUM(a79) = 79.0;
+        ARM_NUM(a80) = 80.0;
+        ARM_NUM(a81) = 81.0;
+        ARM_NUM(a82) = 82.0;
+        ARM_NUM(a83) = 83.0;
+        ARM_NUM(a84) = 84.0;
+        ARM_NUM(a85) = 85.0;
+        ARM_NUM(a86) = 86.0;
+        ARM_NUM(a87) = 87.0;
+        ARM_NUM(a88) = 88.0;
+        ARM_NUM(a89) = 89.0;
+        ARM_NUM(a90) = 90.0;
+        ARM_NUM(a91) = 91.0;
+        ARM_NUM(a92) = 92.0;
+        ARM_NUM(a93) = 93.0;
+        ARM_NUM(a94) = 94.0;
+        ARM_NUM(a95) = 95.0;
+        ARM_NUM(a96) = 96.0;
+        ARM_NUM(a97) = 97.0;
+        ARM_NUM(a98) = 98.0;
+        ARM_NUM(a99) = 99.0;
+        ARM_NUM(a100) = 100.0;
     };
 
     horizon = 20000;
