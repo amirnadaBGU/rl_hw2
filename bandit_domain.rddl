@@ -1,0 +1,40 @@
+domain bandit_domain {
+    requirements = { reward-stochastic };
+
+    types {
+         arm: object;
+    };
+
+    pvariables {
+        // Constants
+        NUMBER_OF_ARMS: {non-fluent, real, default = 10.0};
+        ARM_NUM(arm) : {non-fluent, real, default = 0.0};
+        PROB_VAL(arm): {non-fluent, real, default = 0.5};
+
+        // Intermediate Fluents
+        prob(arm):   {interm-fluent, real};
+
+        // State Fluents
+        chosen(arm): {state-fluent, bool, default = false};
+
+        // Action Fluents
+        roll(arm): {action-fluent, bool, default = false};
+
+        //total_reward(arm): {state-fluent, real, default = 0.0};
+        //selected_prob: {interm-fluent, real};
+        //reward_val: {state-fluent, real, default = 0.0};
+    };
+
+    cpfs {
+        prob(?a) =  Bernoulli(PROB_VAL(?a));
+        chosen'(?a) = roll(?a);
+
+
+        //selected_prob = arm_num({?a : arm}) / number_of_arms;
+        //reward_val' = Bernoulli(selected_prob);
+
+        //total_reward(arm), = total_reward(arm) + (if chosen(?a) then reward_val else 0.0);
+    };
+
+    reward = 1;
+}

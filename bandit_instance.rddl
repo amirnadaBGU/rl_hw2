@@ -1,0 +1,22 @@
+non-fluents nf {
+}
+
+instance bandit_instance {
+
+    domain = bandit_domain;
+
+    objects {
+        arm : {a1, a2};
+    };
+
+   non-fluents {
+    ARM_NUM(a1) = 1.0;
+    ARM_NUM(a2) = 2.0;
+
+    NUMBER_OF_ARMS = 2.0;
+    };
+
+    horizon = 20000;
+    discount = 1.0;
+    max-nondef-actions = 1;
+}
