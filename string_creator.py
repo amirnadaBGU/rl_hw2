@@ -1,3 +1,6 @@
+# Script that cerates the string for the instance file.
+# Fill required N (number of arms) and fill the output into the instance file
+
 N = 100
 arms = [f"a{i}" for i in range(1, N + 1)]
 
