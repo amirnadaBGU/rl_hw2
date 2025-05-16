@@ -38,4 +38,5 @@ domain bandit_domain {
     reward = Bernoulli(
     sum_{?a : arm} (if (roll(?a)) then prob_val(?a) else 0.0)
     );
+
 }
