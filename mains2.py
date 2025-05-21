@@ -72,16 +72,21 @@ if __name__ == '__main__':
     #     else do some job according to your policy.
 
     job_names = list(env.action_space.keys()) #give me all that is not done
+    tc = 0
     for job in job_names:
         action = {job: False for job in job_names}
         action[job] = True
         # Step the environment
-        next_state, reward, _, _, _ = env.step(action)
-        # Update rewards
-        was_done = [next_state['was_done___j1'],next_state['was_done___j2']
-            ,next_state['was_done___j3'],next_state['was_done___j4']
-            ,next_state['was_done___j5']]
+        next_state, cost, _, _, _ = env.step(action)
+
+        was_done = [next_state['was_done___j1'], next_state['was_done___j2']
+            , next_state['was_done___j3'], next_state['was_done___j4']
+            , next_state['was_done___j5']]
+
         print(was_done)
+        print(cost)
+
+
 
     #full_plot_run(do_single_run_random_policy)
     #full_plot_run(do_single_run_greedy_policy)

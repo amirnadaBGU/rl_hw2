@@ -26,5 +26,5 @@ domain job_scheduler_domain {
     was_done'(?j) = (done'(?j) | was_done(?j));
   };
 
-  reward = 1;
+  reward = sum_{?j : job} (cost(?j) * (1 - was_done(?j)));
 }
