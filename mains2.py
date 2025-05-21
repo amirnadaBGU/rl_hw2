@@ -9,7 +9,7 @@ import math
 
 
 # Global variables
-base_path = '../../Desktop/'
+base_path ='./' # '../../Desktop/'
 domain_file = base_path + 'jobs_domain.rddl'
 instance_file = base_path + 'jobs_instance.rddl'
 
