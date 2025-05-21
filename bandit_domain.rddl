@@ -25,7 +25,7 @@ domain bandit_domain {
     };
 
     cpfs {
-        prob_val(?a) = 1/(ARM_NUM(?a) + 1);
+        prob_val(?a) = ARM_NUM(?a)/( NUMBER_OF_ARMS + 1);
         chosen'(?a) = roll(?a);
 
 

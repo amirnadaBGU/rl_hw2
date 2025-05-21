@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
+import math
+
 
 # Global variables
 DEBUG = False
@@ -13,10 +15,77 @@ instance_file = base_path + 'bandit_instance.rddl'
 # GLOBALS
 HORIZON = 20000 # suppose to be 20000
 N_LOOPS = 1 # suppose to be 20
-MEAN_BEST_REWARD_PER_ACTION = 0.5 # for regret calculations
+MEAN_BEST_REWARD_PER_ACTION = 100.0/101.0 # for regret calculations
 
 def do_single_run_ucb1_policy():
-    pass
+    """
+        function that do full simulation with greedy policy according to instructions - Horizon arm choices sequence
+        ______
+        return:
+        ______
+            rewards - list of rewards. Shape: [r,r,r...] - length HORIZON
+        """
+    # Create the environment
+    myEnv = pyRDDLGym.make(domain=domain_file, instance=instance_file)
+    # Extract arm names from action space
+    arm_names = list(myEnv.action_space.keys())
+    # Start the environment
+    myEnv.reset()
+    # Construct reward poe arm array:
+    reward_per_arm = np.zeros(len(arm_names))
+    rewards = []
+    num_of_pulls_per_arm = np.zeros(len(arm_names))
+
+
+    for i in range(len(arm_names)):
+        # Choose a arm in a sequntial order
+        chosen_arm = arm_names[i]
+
+        # Create an action dict with all False, except one arm
+        action = {arm: False for arm in arm_names}
+        action[chosen_arm] = True
+
+        # Step the environment
+        next_state, reward, done, _, _ = myEnv.step(action)
+
+        # Update reward per arm
+        reward_per_arm[i] += reward
+        num_of_pulls_per_arm[i] += 1
+
+        # Update rewards
+        rewards.append(reward)
+
+
+    for i in range(HORIZON-len(arm_names)):
+        num_of_pulls = sum(num_of_pulls_per_arm)
+
+        # UCB formula applied to each arm
+        ucb_cumulative_reward = [
+            (reward_per_arm[i] / num_of_pulls_per_arm[i]) +
+            math.sqrt((2 * math.log(num_of_pulls)) / num_of_pulls_per_arm[i])
+            for i in range(len(reward_per_arm))
+        ]
+
+        best_arm = np.argmax(ucb_cumulative_reward)
+
+        # Choose a arm in a sequntial order
+        chosen_arm = arm_names[best_arm]
+
+        # Create an action dict with all False, except one arm
+        action = {arm: False for arm in arm_names}
+        action[chosen_arm] = True
+
+        # Step the environment
+        next_state, reward, done, _, _ = myEnv.step(action)
+
+        # Update reward per arm
+        reward_per_arm[best_arm] += reward
+        num_of_pulls_per_arm[best_arm] += 1
+
+        # Update rewards
+        rewards.append(reward)
+
+    return rewards
 
 def do_single_run_greedy_policy():
     """
@@ -152,13 +221,13 @@ def full_plot_run(policy):
     elif policy is do_single_run_greedy_policy:
         headline = "Greedy Policy"
     elif policy is do_single_run_ucb1_policy:
-        pass
+        headline = "UCB1 Policy"
 
     plot_rew_reg(average_rewards, headline=f"{headline} Rewards")
     plot_rew_reg(average_regrets, headline=f"{headline} Regrets")
 
 
 if __name__ == '__main__':
-    # full_plot_run(do_single_run_random_policy)
-    full_plot_run(do_single_run_greedy_policy)
-    #edit
+    #full_plot_run(do_single_run_random_policy)
+    #full_plot_run(do_single_run_greedy_policy)
+    full_plot_run(do_single_run_ucb1_policy)
