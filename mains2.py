@@ -15,6 +15,8 @@ domain_file = base_path + 'jobs_domain.rddl'
 instance_file = base_path + 'jobs_instance.rddl'
 
 # GLOBALS
+COSTS = [1, 4, 6, 2, 9]
+
 
 def generate_states():
     return list(product([True, False], repeat=5))
@@ -36,10 +38,35 @@ def generate_random_policy(states=generate_states()):
     return policy
 
 
+def generate_cost_policy(states=generate_states()):
+    policy = {}
+    for state in states:
+        state_tuple = tuple(state)  # Use tuple as dictionary key
+        false_indices = [i for i, val in enumerate(state) if val == False]
+
+        if not false_indices:
+            policy[state_tuple] = [False] * len(state)  # No action possible
+            continue
+
+        max_cost = 0
+        action_index = 0
+
+        for i in false_indices:
+            if COSTS[i] > max_cost:
+                action_index = i
+                max_cost = COSTS[i]
+
+        action = [False] * len(state)
+        action[action_index] = True
+        policy[state_tuple] = action
+    return policy
+
+
 
 def return_v_function(policy):
     def get_mu(action):
         mus = np.array([0.6, 0.5, 0.3, 0.7, 0.1])
+        mus = np.array([1, 1, 1, 1, 1])
         action = np.array(action, dtype=float)
         return np.dot(mus, action)
 
@@ -50,8 +77,7 @@ def return_v_function(policy):
         return next_state
 
     def get_total_cost(state):
-        costs = [1,4,6,2,9]
-        return sum(costs) - np.dot(costs, state)
+        return sum(COSTS) - np.dot(COSTS, state)
 
     def update_value(states,index,action,values):
         state = states[index]
@@ -67,7 +93,7 @@ def return_v_function(policy):
             value = get_total_cost(state)
             values.append(value)
         return values
-    epsilon = 0.05
+    epsilon = 0.005
 
     states = generate_states()
     values = init_values(states)
@@ -119,8 +145,16 @@ if __name__ == '__main__':
             print(was_done)
             print(cost)
     if section_2:
-        random_policy = generate_random_policy()
-        return_v_function(random_policy)
+        states = generate_states()
+        for k,state in enumerate(states):
+                print(k)
+                print(state)
+                print('-----')
+        random.seed(42)
+        #random_policy = generate_random_policy()
+        cost_policy = generate_cost_policy()
+        return_v_function(cost_policy)
+
 
 
 
