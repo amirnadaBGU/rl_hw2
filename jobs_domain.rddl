@@ -1,0 +1,30 @@
+domain job_scheduler_domain {
+  requirements = { reward-deterministic };
+  types {
+    job : object;
+  };
+
+  pvariables {
+    // Constants
+    mu(job) : { non-fluent, real, default = 0.0}; // Completion probability for each job
+    cost(job) : { non-fluent, real, default = 0.0 }; // Cost per time step for each job
+
+    // State Fluents
+    done(job) : { state-fluent, bool, default = false };
+    was_done(job): {  state-fluent, bool, default = false };
+
+
+    // Action Fluents
+    choose(job) : { action-fluent, bool, default = false };
+  };
+
+  cpfs {
+    // A job becomes done if it is chosen and completes successfully
+    done'(?j) = if ((choose(?j)) & Bernoulli(mu(?j))) then true
+                else false;
+
+    was_done'(?j) = (done'(?j) | was_done(?j));
+  };
+
+  reward = 1;
+}

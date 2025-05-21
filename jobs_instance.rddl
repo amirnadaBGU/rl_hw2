@@ -1,0 +1,28 @@
+non-fluents nf {
+}
+
+instance jobs_instance {
+  domain = jobs_domain;
+
+  objects {
+    job : {j1, j2, j3, j4, j5};
+  };
+
+  non-fluents {
+    mu(j1) = 0.99;
+    mu(j2) = 0.99;
+    mu(j3) = 0.99;
+    mu(j4) = 0.99;
+    mu(j5) = 0.99;
+
+    cost(j1) = 1.0;
+    cost(j2) = 4.0;
+    cost(j3) = 6.0;
+    cost(j4) = 2.0;
+    cost(j5) = 9.0;
+  };
+
+  max-nondef-actions = 1;
+  horizon = 5;
+  discount = 1.0;
+}
