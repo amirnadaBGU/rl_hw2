@@ -1,5 +1,5 @@
 domain job_scheduler_domain {
-  requirements = { reward-deterministic };
+  requirements = {reward-deterministic };
   types {
     job : object;
   };
@@ -16,6 +16,7 @@ domain job_scheduler_domain {
 
     // Action Fluents
     choose(job) : { action-fluent, bool, default = false };
+
   };
 
   cpfs {
@@ -24,7 +25,12 @@ domain job_scheduler_domain {
                 else false;
 
     was_done'(?j) = (done'(?j) | was_done(?j));
+
+
   };
 
   reward = sum_{?j : job} (cost(?j) * (1 - was_done(?j)));
+
+  termination {forall_{?j : job} [was_done(?j)];};
+
 }

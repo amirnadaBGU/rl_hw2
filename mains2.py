@@ -91,7 +91,7 @@ def init_values(states):
         values.append(value)
     return values
 
-def evaluate_policy(policy):
+def evaluate_policy(policy, graph = True):
     states = generate_states()
     values = init_values(states)
     new_values = values.copy()
@@ -105,14 +105,15 @@ def evaluate_policy(policy):
         value_history.append(new_values.copy())
         values = new_values.copy()
 
-    value_history = np.array(value_history)  # shape: (iterations, num_states)
-    for i in range(len(states)):
-        plt.plot(value_history[:, i], label=f"State {i}")
-    plt.xlabel("Iteration")
-    plt.ylabel("V(state)")
-    plt.title("Value Function Convergence")
-    plt.grid(True)
-    plt.show()
+    if graph:
+        value_history = np.array(value_history)  # shape: (iterations, num_states)
+        for i in range(len(states)):
+            plt.plot(value_history[:, i], label=f"State {i}")
+        plt.xlabel("Iteration")
+        plt.ylabel("V(state)")
+        plt.title("Value Function Convergence")
+        plt.grid(True)
+        plt.show()
 
     return values
 
@@ -186,10 +187,31 @@ def policy_iteration(initial_policy):
 
     return policy, values
 
+
+def c_mu_policy(state):
+    best_score = -float('inf')
+    best_job = None
+    for i, done in enumerate(state):
+        if not done:
+            score = COSTS[i] * MUS[i]
+            if score > best_score:
+                best_score = score
+                best_job = i
+    return [i == best_job for i in range(len(state))]
+
+
+# Compare the optimal policy π∗ obtained using policy iteration to the cμ law.
+# Also plot V π∗ vs. V πc .
+
+def comparison_optimal_policy_and_cm():
+    print()
+
+
 if __name__ == '__main__':
     section_0 = False
-    section_2 = True
-    section_3 = True
+    section_2 = False
+    section_3 = False
+    section_4 = True
     if section_0:
         # policy_evaluation()
         env = pyRDDLGym.make(domain=domain_file, instance=instance_file)
@@ -212,7 +234,8 @@ if __name__ == '__main__':
 
             print(was_done)
             print(cost)
-    if section_2:
+
+    if section_2 or section_4:
         states = generate_states()
         for k,state in enumerate(states):
                 print(k)
@@ -221,10 +244,38 @@ if __name__ == '__main__':
         random.seed(42)
         # random_policy = generate_random_policy()
         cost_policy = generate_cost_policy()
-        evaluate_policy(cost_policy)
-    if section_3:
-        cost_policy = generate_cost_policy()
-        policy_iteration(initial_policy=cost_policy)
+        V_cost = evaluate_policy(cost_policy)
 
+    if section_3 or section_4:
+        cost_policy = generate_cost_policy()
+        optimal_policy, V_star = policy_iteration(initial_policy=cost_policy)
+        print(optimal_policy)
+
+    if section_4:
+        states = generate_states()
+        count_of_different = 0
+        for state in states:
+            optimal = optimal_policy[tuple(state)]
+            cmu = c_mu_policy(state)
+            if optimal != cmu:
+                print(f"Difference at state {state}:")
+                print(f"  π*:  {optimal}")
+                print(f"  cμ:  {cmu}")
+                count_of_different += 1
+
+        print(f'number of actions that are different between optimal policy and cμ law: {count_of_different}')
+
+
+        # Plot V^π* vs V^π_c
+        plt.figure()
+        plt.plot(V_star, label="V(π*) - Optimal Policy", marker='o', linewidth=1)
+        plt.plot(V_cost, label="V(π_c) - Cost-based Policy", marker='x', linewidth=1)
+        plt.xlabel("State Index")
+        plt.ylabel("Value")
+        plt.title("Comparison: V(π*) vs V(π_c)")
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
 
 
