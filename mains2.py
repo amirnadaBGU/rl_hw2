@@ -18,7 +18,7 @@ instance_file = base_path + 'jobs_instance.rddl'
 # GLOBALS
 COSTS = [1, 4, 6, 2, 9]
 MUS = np.array([0.6, 0.5, 0.3, 0.7, 0.1])
-EPSILON = 0.005
+EPSILON = 0.0005
 
 def generate_states():
     return list(product([True, False], repeat=5))

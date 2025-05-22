@@ -17,7 +17,7 @@ import math
 import mains2
 
 # Globals
-EPSILON = 0.05
+EPSILON = 0.0005
 
 
 # Global variables
@@ -69,7 +69,6 @@ def convert_sim_state_to_bool_state(sim_state):
 
 def policy_evaluation(sub_section):
     env = pyRDDLGym.make(domain=domain_file, instance=instance_file)
-
     delta = float('inf')
     job_names = list(env.action_space.keys())  # give me all that is not done
     states = generate_states(len(job_names))
@@ -89,8 +88,12 @@ def policy_evaluation(sub_section):
     #     "sub_section_3": v_pi_c[-1]
     # }
 
-
+    counter = 0
     while delta > EPSILON:
+        if counter % 1000 == 0:
+            print(counter)
+            print(delta)
+        counter+=1
         # Initial state
         state = env.reset()[0]
         state = convert_sim_state_to_bool_state(state)
@@ -117,6 +120,7 @@ def policy_evaluation(sub_section):
             elif sub_section == "sub_section_3":
                 alpha = 10/(100 + visits[state])
 
+            alpha = 1/visits[state]
             current_value = values[state]
             values[state] = current_value + alpha * (cost + values[next_state] - current_value)
 
@@ -124,6 +128,9 @@ def policy_evaluation(sub_section):
 
             if done:
                 break
+
+        if counter>30000:
+            break
 
         valid_states = [s for s in values if visits[s] > 0 and s in v_pi_c]
         if valid_states:
@@ -137,6 +144,20 @@ def policy_evaluation(sub_section):
         # print(delta)
         # print("visits: ")
 
+    # Plot V^π* vs V^π_c
+    plt.figure()
+    plt.plot([v_pi_c[state] for state in states], label="V(π*) - Optimal Policy", marker='o', linewidth=1)
+    plt.plot([values[state] for state in states], label="V(π_c) - Cost-based Policy", marker='x', linewidth=1)
+    plt.xlabel("State Index")
+    plt.ylabel("Value")
+    plt.title("Comparison: V(π*) vs V(π_c)")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+
+
     return max_norm
 
 
@@ -146,15 +167,15 @@ np.random.seed(0)
 
 # Run evaluations and collect max-norm error lists
 max_norm_1 = policy_evaluation("sub_section_1")
-max_norm_2 = policy_evaluation("sub_section_2")
-max_norm_3 = policy_evaluation("sub_section_3")
+# max_norm_2 = policy_evaluation("sub_section_2")
+# max_norm_3 = policy_evaluation("sub_section_3")
 
 # Plot the results
 plt.figure(figsize=(10, 6))
 
 plt.plot(max_norm_1, label="α = 1/k (sub_section_1)")
-plt.plot(max_norm_2, label="α = 0.01 (sub_section_2)")
-plt.plot(max_norm_3, label="α = 10 / (100 + k) (sub_section_3)")
+# plt.plot(max_norm_2, label="α = 0.01 (sub_section_2)")
+# plt.plot(max_norm_3, label="α = 10 / (100 + k) (sub_section_3)")
 
 plt.title(r"$\|V^{\pi_c} - \hat{V}_{TD}\|_\infty$ over Iterations")
 plt.xlabel("Iteration")
@@ -163,5 +184,8 @@ plt.legend()
 plt.grid(True)
 plt.tight_layout()
 plt.show()
+
+
+
 
 
