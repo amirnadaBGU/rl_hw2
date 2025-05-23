@@ -17,7 +17,7 @@ import math
 import mains2
 
 # Globals
-EPSILON = 0.0005
+EPSILON = 0.00000005
 
 
 # Global variables
@@ -65,8 +65,6 @@ def convert_sim_state_to_bool_state(sim_state):
             was_done[index] = sim_state[key]
     return tuple([was_done[i] for i in sorted(was_done)])
 
-
-
 def policy_evaluation(sub_section):
     env = pyRDDLGym.make(domain=domain_file, instance=instance_file)
     delta = float('inf')
@@ -82,17 +80,12 @@ def policy_evaluation(sub_section):
     v_pi_c_raw = mains2.evaluate_policy(policy, False)
     v_pi_c = dict(zip(states, v_pi_c_raw))
 
-    # v_pi_c_s0 = {
-    #     "sub_section_1": v_pi_c[-1],
-    #     "sub_section_2": v_pi_c[-1],
-    #     "sub_section_3": v_pi_c[-1]
-    # }
+    v_pi_c_so = v_pi_c[tuple([False]*len(states[0]))]
+    v_TD_so = []
+
 
     counter = 0
     while delta > EPSILON:
-        if counter % 1000 == 0:
-            print(counter)
-            print(delta)
         counter+=1
         # Initial state
         state = env.reset()[0]
@@ -120,7 +113,6 @@ def policy_evaluation(sub_section):
             elif sub_section == "sub_section_3":
                 alpha = 10/(100 + visits[state])
 
-            alpha = 1/visits[state]
             current_value = values[state]
             values[state] = current_value + alpha * (cost + values[next_state] - current_value)
 
@@ -139,23 +131,40 @@ def policy_evaluation(sub_section):
             max_norm.append(0)  # Fallback in case nothing was visited yet
             print('i am here')
 
-
+        v_TD_so.append(values[tuple([False] * len(states[0]))])
         delta = max(abs(old_values[s] - values[s]) for s in states)
+        if counter % 1000 == 0:
+            print(counter)
+            print(delta)
+        if delta <= EPSILON:
+            print(f"Stop: {delta}")
         # print(delta)
         # print("visits: ")
 
-    # Plot V^π* vs V^π_c
+    # Plot V(π_TD) and V(π_c) State Values
     plt.figure()
-    plt.plot([v_pi_c[state] for state in states], label="V(π*) - Optimal Policy", marker='o', linewidth=1)
-    plt.plot([values[state] for state in states], label="V(π_c) - Cost-based Policy", marker='x', linewidth=1)
+    plt.plot([v_pi_c[state] for state in states], label="V(π_c)", marker='o', linewidth=1)
+    plt.plot([values[state] for state in states], label="V(π_TD)", marker='x', linewidth=1)
     plt.xlabel("State Index")
     plt.ylabel("Value")
-    plt.title("Comparison: V(π*) vs V(π_c)")
+    plt.title("V(π_TD) and V(π_c) State Values")
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
     plt.show()
 
+    delta_s0 = abs(v_TD_so - v_pi_c_so)
+    # Plot V(π_TD)(s0) vs V(π_c)(s0)
+    plt.figure()
+    plt.plot(delta_s0, marker='o', linewidth=1)
+    # plt.plot(v_pi_c_so , label="V(π_c)(s0)", marker='x', linewidth=1)
+    plt.xlabel("Episode")
+    plt.ylabel("Absolute Error")
+    plt.title("|V(π_TD)(S0) - V(π_c)(S0)| VS Episode")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
 
 
     return max_norm
@@ -174,8 +183,8 @@ max_norm_1 = policy_evaluation("sub_section_1")
 plt.figure(figsize=(10, 6))
 
 plt.plot(max_norm_1, label="α = 1/k (sub_section_1)")
-# plt.plot(max_norm_2, label="α = 0.01 (sub_section_2)")
-# plt.plot(max_norm_3, label="α = 10 / (100 + k) (sub_section_3)")
+#plt.plot(max_norm_2, label="α = 0.01 (sub_section_2)")
+#plt.plot(max_norm_3, label="α = 10 / (100 + k) (sub_section_3)")
 
 plt.title(r"$\|V^{\pi_c} - \hat{V}_{TD}\|_\infty$ over Iterations")
 plt.xlabel("Iteration")
