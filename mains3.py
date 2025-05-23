@@ -141,6 +141,8 @@ def policy_evaluation(sub_section):
         # print(delta)
         # print("visits: ")
 
+
+
     # Plot V(π_TD) and V(π_c) State Values
     plt.figure()
     plt.plot([v_pi_c[state] for state in states], label="V(π_c)", marker='o', linewidth=1)
@@ -157,10 +159,24 @@ def policy_evaluation(sub_section):
     # Plot V(π_TD)(s0) vs V(π_c)(s0)
     plt.figure()
     plt.plot(delta_s0, marker='o', linewidth=1)
-    # plt.plot(v_pi_c_so , label="V(π_c)(s0)", marker='x', linewidth=1)
     plt.xlabel("Episode")
     plt.ylabel("Absolute Error")
     plt.title("|V(π_TD)(S0) - V(π_c)(S0)| VS Episode")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+    if sub_section == "sub_section_1":
+        alpha = "1/n_visits"
+    elif sub_section == "sub_section_2":
+        alpha = "0.01"
+    elif sub_section == "sub_section_3":
+        alpha = "10/(100+n_visits)"
+    plt.plot(max_norm, label=f"{sub_section}, alpha: {alpha}")
+    plt.title(r"$\|V^{\pi_c} - \hat{V}_{TD}\|_\infty$ over Episodes")
+    plt.xlabel("Episode")
+    plt.ylabel("Infinity Norm Error")
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
@@ -182,17 +198,10 @@ max_norm_1 = policy_evaluation("sub_section_1")
 # Plot the results
 plt.figure(figsize=(10, 6))
 
-plt.plot(max_norm_1, label="α = 1/k (sub_section_1)")
 #plt.plot(max_norm_2, label="α = 0.01 (sub_section_2)")
 #plt.plot(max_norm_3, label="α = 10 / (100 + k) (sub_section_3)")
 
-plt.title(r"$\|V^{\pi_c} - \hat{V}_{TD}\|_\infty$ over Iterations")
-plt.xlabel("Iteration")
-plt.ylabel("Infinity Norm Error")
-plt.legend()
-plt.grid(True)
-plt.tight_layout()
-plt.show()
+
 
 
 
