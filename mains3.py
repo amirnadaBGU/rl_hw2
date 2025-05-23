@@ -71,7 +71,6 @@ def policy_evaluation(sub_section):
     job_names = list(env.action_space.keys())  # give me all that is not done
     states = generate_states(len(job_names))
     values = {state: 0 for state in states}
-    old_values = {state: 0 for state in states}
     visits = {state: 0 for state in states}
     policy = generate_cost_policy(states)
 
@@ -184,7 +183,6 @@ def policy_evaluation(sub_section):
 
 
     return max_norm
-
 
 random.seed(0)
 np.random.seed(0)

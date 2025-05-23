@@ -188,7 +188,7 @@ def policy_iteration(initial_policy):
     return policy, values
 
 
-def c_mu_policy(state):
+def c_mu_action(state):
     best_score = -float('inf')
     best_job = None
     for i, done in enumerate(state):
@@ -256,7 +256,7 @@ if __name__ == '__main__':
         count_of_different = 0
         for state in states:
             optimal = optimal_policy[tuple(state)]
-            cmu = c_mu_policy(state)
+            cmu = c_mu_action(state)
             if optimal != cmu:
                 print(f"Difference at state {state}:")
                 print(f"  π*:  {optimal}")

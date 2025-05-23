@@ -228,6 +228,6 @@ def full_plot_run(policy):
 
 
 if __name__ == '__main__':
-    #full_plot_run(do_single_run_random_policy)
+    full_plot_run(do_single_run_random_policy)
     #full_plot_run(do_single_run_greedy_policy)
-    full_plot_run(do_single_run_ucb1_policy)
+    #full_plot_run(do_single_run_ucb1_policy)
