@@ -195,11 +195,6 @@ max_norm_1 = policy_evaluation("sub_section_1")
 # max_norm_2 = policy_evaluation("sub_section_2")
 # max_norm_3 = policy_evaluation("sub_section_3")
 
-# Plot the results
-plt.figure(figsize=(10, 6))
-
-#plt.plot(max_norm_2, label="α = 0.01 (sub_section_2)")
-#plt.plot(max_norm_3, label="α = 10 / (100 + k) (sub_section_3)")
 
 
 
