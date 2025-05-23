@@ -20,7 +20,7 @@ import mains2
 
 # Globals
 EPSILON = 0.00000005
-EXPLORATION = 0.1
+EXPLORATION = 0.01
 
 # Global variables
 base_path ='./' # '../../Desktop/'
@@ -96,7 +96,7 @@ def generate_actions_and_init_q(states):
         actions = generate_actions_per_state(state)
         dict_of_q_values[state] = {}  # Initialize inner dict
         for action in actions:
-            dict_of_q_values[state][action] = 0.0  # Init Q-value to 0.0 (float)
+            dict_of_q_values[state][action] = 0  # Init Q-value to 0.0 (float)
     return dict_of_q_values
 
 #
@@ -110,6 +110,8 @@ def generate_actions_and_init_q(states):
 
 def get_optimal_action_according_to_q(q_values,state):
     best_action = min(q_values[state], key=q_values[state].get)
+    if state == tuple([False] *5):
+        print(best_action)
     return best_action
 
 def choose_random_action(state):
@@ -118,7 +120,10 @@ def choose_random_action(state):
     return random_action
 
 def update_q(q_values, state,action, next_state, cost,alpha):
+    # if state == tuple([False] * 5):
+    #     print("")
     opt_q_next_state = q_values[next_state][get_optimal_action_according_to_q(q_values, next_state)]
+
     new_value = q_values[state][action] + alpha * (cost + opt_q_next_state - q_values[state][action])
     return new_value
 
@@ -127,6 +132,21 @@ def create_policy_from_q(q_values):
     for state in q_values.keys():
         policy[state] = get_optimal_action_according_to_q(q_values, state)
     return policy
+
+def convert_from_state_to_index(states, available_states):
+    indexes = []
+    for s in available_states:
+        if s in states:
+            indexes.append(states.index(s))
+    return indexes
+
+def count_differences(list1, list2):
+    # Ensure both lists are the same length
+    if len(list1) != len(list2):
+        raise ValueError("Lists must be the same length.")
+
+    # Count differences
+    return sum(1 for key in set(list1.keys()).union(list2.keys()) if list1.get(key) != list2.get(key))
 
 def q_learning(sub_section,opt_values):
     env = pyRDDLGym.make(domain=domain_file, instance=instance_file)
@@ -138,7 +158,7 @@ def q_learning(sub_section,opt_values):
     counter = 0
     max_norm = []
     abs_s0 = []
-
+    policy = create_policy_from_q(q_values)
 
     while delta > EPSILON:
         old_q_values = copy.deepcopy(q_values)
@@ -158,7 +178,9 @@ def q_learning(sub_section,opt_values):
             next_state, cost, done, _, _ = env.step(action_sim)
             # print(next_state)
 
+            visits[state] += 1
             alpha = 0.01
+
 
             if sub_section == "sub_section_1":
                 alpha = 1 / visits[state]
@@ -170,9 +192,10 @@ def q_learning(sub_section,opt_values):
                 alpha = 10 / (100 + visits[state])
 
             next_state = convert_sim_state_to_bool_state(next_state)
-            q_values[state][action] = update_q(q_values.copy(), state, action, next_state, cost,alpha)
-            visits[state] += 1
+            q_values[state][action] = update_q(copy.deepcopy(q_values), state, action, next_state, cost,alpha)
 
+            # if state == (False,False,False,False,False):
+            #     print(alpha)
             state = tuple(list(next_state).copy())
 
             # log data
@@ -192,13 +215,19 @@ def q_learning(sub_section,opt_values):
             delta = max_delta
 
         if counter % 100 == 0:
-
+            old_policy = copy.deepcopy(policy)
             policy = create_policy_from_q(q_values)
+
+            print(f'visits: {visits[tuple([False]*5)]}')
+            print("Number of different entries:", count_differences(old_policy, policy))
+
             values = mains2.evaluate_policy(policy, False)
 
-            valid_states = [s for s in range(len(values)) if visits[s] > 0]
+            valid_states = [s for s in states if visits[s] > 0]
+            valid_states_indices = convert_from_state_to_index(states, valid_states)
+
             if valid_states:
-                max_norm.append(max(abs(values[s] - opt_values[s]) for s in valid_states))
+                max_norm.append(max(abs(values[s] - opt_values[s]) for s in valid_states_indices))
                 abs_s0.append(abs(values[-1] - opt_values[-1]))
                 print(counter)
                 print(delta)
@@ -207,7 +236,7 @@ def q_learning(sub_section,opt_values):
                 print('i am here')
 
 
-        if counter > 50000:
+        if counter > 5000:
             break
 
 
@@ -251,4 +280,4 @@ def q_learning(sub_section,opt_values):
     plt.show()
 
 opt_policy_values = mains2.evaluate_policy(generate_c_mu_policy(),False)
-values = q_learning("sub_section_3",opt_policy_values)
+values = q_learning("sub_section_1",opt_policy_values)
