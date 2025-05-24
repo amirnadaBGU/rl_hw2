@@ -16,7 +16,7 @@ instance jobs_instance {
     mu(j5) = 1;
 
     cost(j1) = -1.0;
-    cost(j2) = -4.0;
+    cost(j2) = -2;
     cost(j3) = 0;
     cost(j4) = 0;
     cost(j5) = 0;

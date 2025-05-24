@@ -136,6 +136,24 @@ def update_q(q_values, state,action, next_state, cost,alpha):
     update =  alpha * (cost + opt_q_next_state - q_values[state][action])
     return update
 
+def update_q2(q_values, state,action, next_state, cost,alpha):
+    if state == tuple([False, False, True, True, True]):
+        if action == tuple([True, False, False, False, False]):
+            print('---')
+            print('action:', action)
+            print(f'same state: {state==next_state}')
+            print(f'q value: {q_values[state][action]}')
+            print(f'q value next: {q_values[next_state][get_optimal_action_according_to_q(q_values, next_state)]}')
+            print(f' alpha: {alpha}')
+            print(f'cost: {cost}')
+            print(f'update: {(cost + q_values[next_state][get_optimal_action_according_to_q(q_values, next_state)] - q_values[state][action])}')
+
+    opt_q_next_state = q_values[next_state][get_optimal_action_according_to_q(q_values, next_state)]
+
+    q =  (1-alpha)*q_values[state][action] + alpha * (cost + opt_q_next_state)
+    return q
+
+
 def create_policy_from_q(q_values):
     policy = {}
     for state in q_values.keys():
@@ -227,6 +245,7 @@ def q_learning(sub_section,opt_values):
             next_state = convert_sim_state_to_bool_state(next_state)
             q_values_copy = copy.deepcopy(q_values)
             q_values[state][action] += update_q(q_values_copy, state, action, next_state, cost,alpha)
+            # q_values[state][action] = update_q2(q_values_copy, state, action, next_state, cost,alpha)
 
 
             # if state == (False,False,False,False,False):
@@ -323,4 +342,4 @@ def q_learning(sub_section,opt_values):
     # plt.show()
 
 opt_policy_values = mains2.evaluate_policy(generate_c_mu_policy(),False)
-values = q_learning("sub_section_2",opt_policy_values)
+values = q_learning("sub_section_3",opt_policy_values)
