@@ -21,7 +21,7 @@ from mains2 import COSTS
 
 # Globals
 EPSILON = 0.00000005
-EXPLORATION = 0.1
+EXPLORATION = 1
 
 # Global variables
 base_path ='./' # '../../Desktop/'
@@ -34,7 +34,7 @@ def generate_c_mu_policy():
     states = generate_states(len(job_names))
     policy ={}
     for state in states:
-        policy[state] = mains2.c_mu_action(state)
+        policy[state] = tuple(mains2.c_mu_action(state))
     return policy
 
 def generate_states(num_jobs):
@@ -109,7 +109,7 @@ def generate_actions_and_init_q(states):
 #     return q_values
 
 def get_optimal_action_according_to_q(q_values,state):
-    best_action = max(q_values[state], key=q_values[state].get)
+    best_action = min(q_values[state], key=q_values[state].get)
     # if state == tuple([False] *5):
     #     print(best_action)
     return best_action
@@ -120,12 +120,21 @@ def choose_random_action(state):
     return random_action
 
 def update_q(q_values, state,action, next_state, cost,alpha):
-    # if state == tuple([False] * 5):
-    #     print("")
+    if state == tuple([False, False, True, True, True]):
+        if action == tuple([True, False, False, False, False]):
+            print('---')
+            print('action:', {action})
+            print(f'same state: {state==next_state}')
+            print(f'q value: {q_values[state][action]}')
+            print(f'q value next: {q_values[next_state][get_optimal_action_according_to_q(q_values, next_state)]}')
+            print(f' alpha: {alpha}')
+            print(f'cost: {cost}')
+            print(f'update: {(cost + q_values[next_state][get_optimal_action_according_to_q(q_values, next_state)] - q_values[state][action])}')
+
     opt_q_next_state = q_values[next_state][get_optimal_action_according_to_q(q_values, next_state)]
 
-    new_value = q_values[state][action] + alpha * (cost + opt_q_next_state - q_values[state][action])
-    return new_value
+    update =  alpha * (cost + opt_q_next_state - q_values[state][action])
+    return update
 
 def create_policy_from_q(q_values):
     policy = {}
@@ -148,6 +157,16 @@ def count_differences(list1, list2):
     # Count differences
     return sum(1 for key in set(list1.keys()).union(list2.keys()) if list1.get(key) != list2.get(key))
 
+def get_difference_indices(dict_list1, dict_list2):
+    if len(dict_list1) != len(dict_list2):
+        raise ValueError("Both lists must be of the same length.")
+
+    diff_indices = []
+    for i, (d1, d2) in enumerate(zip(dict_list1, dict_list2)):
+        if dict_list1[d1] != dict_list2[d2]:
+            diff_indices.append(i)
+    return diff_indices
+
 def q_learning(sub_section,opt_values):
     env = pyRDDLGym.make(domain=domain_file, instance=instance_file)
     delta = float('inf')
@@ -160,7 +179,9 @@ def q_learning(sub_section,opt_values):
     abs_s0 = []
     policy = create_policy_from_q(q_values)
 
-    while delta > EPSILON:
+    while True:
+        pc = 0
+    # while delta > EPSILON:
         old_q_values = copy.deepcopy(q_values)
         counter+=1
         # Initial state
@@ -174,9 +195,19 @@ def q_learning(sub_section,opt_values):
                 action = get_optimal_action_according_to_q(q_values,state)
 
             action_sim = convert_action_to_sim_action_dict(job_names, action)
+
+
             # Step the environment
             next_state, cost, done, _, _ = env.step(action_sim)
+
             # print(next_state)
+            # if state == tuple([False, False, True, True, True]):
+            #     if action == tuple([True,False,False,False,False]):
+            #         if state == convert_sim_state_to_bool_state(next_state):
+            #             pc +=1
+            #         else:
+            #             pc-=1
+            #         print(pc)
 
             visits[state] += 1
 
@@ -193,7 +224,8 @@ def q_learning(sub_section,opt_values):
                 print("alpha is not defined - crash!")
 
             next_state = convert_sim_state_to_bool_state(next_state)
-            q_values[state][action] = update_q(copy.deepcopy(q_values), state, action, next_state, cost,alpha)
+            q_values[state][action] += update_q(copy.deepcopy(q_values), state, action, next_state, cost,alpha)
+
 
             # if state == (False,False,False,False,False):
             #     print(alpha)
@@ -210,17 +242,23 @@ def q_learning(sub_section,opt_values):
                 if delta > max_delta:
                     max_delta = delta
 
-        if max_delta < EPSILON:
-            break
-        else:
-            delta = max_delta
+        # if max_delta < EPSILON:
+        #     break
+        # else:
+        #     delta = max_delta
 
         if counter % 100 == 0:
             old_policy = copy.deepcopy(policy)
             policy = create_policy_from_q(q_values)
-
+            cmu_policy = generate_c_mu_policy()
             print(f'episode: {counter}')
-            print("Number of different entries:", count_differences(old_policy, policy))
+            print("Differences between policy and optimal policy:",
+                  count_differences(cmu_policy, policy))
+
+            print("Differences indices:",
+                  get_difference_indices(cmu_policy, policy))
+
+            print("Qvalues for state:",q_values[tuple([False,False,True,True,True])])
 
             values = mains2.evaluate_policy(policy, False)
 
@@ -236,7 +274,10 @@ def q_learning(sub_section,opt_values):
                 print('i am here')
 
 
-        if counter > 20000:
+        if counter > 100000:
+            print(q_values)
+            print('-------')
+            print(opt_values)
             break
 
 
@@ -280,4 +321,4 @@ def q_learning(sub_section,opt_values):
     # plt.show()
 
 opt_policy_values = mains2.evaluate_policy(generate_c_mu_policy(),False)
-values = q_learning("sub_section_2",opt_policy_values)
+values = q_learning("sub_section_3",opt_policy_values)
