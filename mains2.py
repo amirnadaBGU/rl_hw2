@@ -16,7 +16,7 @@ domain_file = base_path + 'jobs_domain.rddl'
 instance_file = base_path + 'jobs_instance.rddl'
 
 # GLOBALS
-COSTS = [1, 4, 6, 2, 9]
+COSTS = [-1, -4, -6, -2, -9]
 MUS = np.array([0.6, 0.5, 0.3, 0.7, 0.1])
 EPSILON = 0.0005
 

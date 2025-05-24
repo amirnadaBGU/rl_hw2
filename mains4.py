@@ -17,10 +17,11 @@ import math
 
 
 import mains2
+from mains2 import COSTS
 
 # Globals
 EPSILON = 0.00000005
-EXPLORATION = 0.01
+EXPLORATION = 0.1
 
 # Global variables
 base_path ='./' # '../../Desktop/'
@@ -40,7 +41,6 @@ def generate_states(num_jobs):
     return list(product([True, False], repeat=num_jobs))
 
 def generate_cost_policy(states):
-    costs = [1, 4, 6, 2, 9]
     policy = {}
     for state in states:
         state_tuple = tuple(state)  # Use tuple as dictionary key
@@ -54,9 +54,9 @@ def generate_cost_policy(states):
         action_index = 0
 
         for i in false_indices:
-            if costs[i] > max_cost:
+            if COSTS[i] > max_cost:
                 action_index = i
-                max_cost = costs[i]
+                max_cost = COSTS[i]
 
         action = [False] * len(state)
         action[action_index] = True
@@ -109,9 +109,9 @@ def generate_actions_and_init_q(states):
 #     return q_values
 
 def get_optimal_action_according_to_q(q_values,state):
-    best_action = min(q_values[state], key=q_values[state].get)
-    if state == tuple([False] *5):
-        print(best_action)
+    best_action = max(q_values[state], key=q_values[state].get)
+    # if state == tuple([False] *5):
+    #     print(best_action)
     return best_action
 
 def choose_random_action(state):
@@ -179,7 +179,6 @@ def q_learning(sub_section,opt_values):
             # print(next_state)
 
             visits[state] += 1
-            alpha = 0.01
 
 
             if sub_section == "sub_section_1":
@@ -190,6 +189,8 @@ def q_learning(sub_section,opt_values):
 
             elif sub_section == "sub_section_3":
                 alpha = 10 / (100 + visits[state])
+            else:
+                print("alpha is not defined - crash!")
 
             next_state = convert_sim_state_to_bool_state(next_state)
             q_values[state][action] = update_q(copy.deepcopy(q_values), state, action, next_state, cost,alpha)
@@ -218,7 +219,7 @@ def q_learning(sub_section,opt_values):
             old_policy = copy.deepcopy(policy)
             policy = create_policy_from_q(q_values)
 
-            print(f'visits: {visits[tuple([False]*5)]}')
+            print(f'episode: {counter}')
             print("Number of different entries:", count_differences(old_policy, policy))
 
             values = mains2.evaluate_policy(policy, False)
@@ -228,30 +229,29 @@ def q_learning(sub_section,opt_values):
 
             if valid_states:
                 max_norm.append(max(abs(values[s] - opt_values[s]) for s in valid_states_indices))
-                abs_s0.append(abs(values[-1] - opt_values[-1]))
-                print(counter)
-                print(delta)
+                min_q = min(q_values[tuple([False]*5)].values())
+                abs_s0.append(abs(min_q - opt_values[-1]))
             else:
                 max_norm.append(0)  # Fallback in case nothing was visited yet
                 print('i am here')
 
 
-        if counter > 5000:
+        if counter > 20000:
             break
 
 
     # Plot V(π_*) and V(π_Q) State Values
-    plt.figure()
-    plt.plot(opt_values, label="V(π_*)", marker='o', linewidth=1)
-    plt.plot(values, label="V(π_Q)", marker='o', linewidth=1)
-    plt.xlabel("State Index")
-    plt.ylabel("Value")
-    plt.title("V(π_*) and V(π_Q) State Values")
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()
-
+    # plt.figure()
+    # plt.plot(opt_values, label="V(π_*)", marker='o', linewidth=1)
+    # plt.plot(values, label="V(π_Q)", marker='o', linewidth=1)
+    # plt.xlabel("State Index")
+    # plt.ylabel("Value")
+    # plt.title("V(π_*) and V(π_Q) State Values")
+    # plt.legend()
+    # plt.grid(True)
+    # plt.tight_layout()
+    # plt.show()
+    #
     # Plot V(π_TD)(s0) vs V(π_c)(s0)
     plt.figure()
     plt.plot(abs_s0, marker='o', linewidth=1)
@@ -264,20 +264,20 @@ def q_learning(sub_section,opt_values):
     plt.show()
 
 
-    if sub_section == "sub_section_1":
-        alpha = "1/n_visits"
-    elif sub_section == "sub_section_2":
-        alpha = "0.01"
-    elif sub_section == "sub_section_3":
-        alpha = "10/(100+n_visits)"
-    plt.plot(max_norm, label=f"{sub_section}, alpha: {alpha}")
-    plt.title(r"$\|V^{\pi_c} - \hat{V}_{TD}\|_\infty$ over Episodes")
-    plt.xlabel("Episode")
-    plt.ylabel("Infinity Norm Error")
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()
+    # if sub_section == "sub_section_1":
+    #     alpha = "1/n_visits"
+    # elif sub_section == "sub_section_2":
+    #     alpha = "0.01"
+    # elif sub_section == "sub_section_3":
+    #     alpha = "10/(100+n_visits)"
+    # plt.plot(max_norm, label=f"{sub_section}, alpha: {alpha}")
+    # plt.title(r"$\|V^{\pi_c} - \hat{V}_{TD}\|_\infty$ over Episodes")
+    # plt.xlabel("Episode")
+    # plt.ylabel("Infinity Norm Error")
+    # plt.legend()
+    # plt.grid(True)
+    # plt.tight_layout()
+    # plt.show()
 
 opt_policy_values = mains2.evaluate_policy(generate_c_mu_policy(),False)
-values = q_learning("sub_section_1",opt_policy_values)
+values = q_learning("sub_section_2",opt_policy_values)
