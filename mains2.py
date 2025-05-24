@@ -16,8 +16,8 @@ domain_file = base_path + 'jobs_domain.rddl'
 instance_file = base_path + 'jobs_instance.rddl'
 
 # GLOBALS
-COSTS = [1, 4, 6, 2, 9]
-MUS = np.array([0.5, 1, 1, 1, 1])
+COSTS = [-1, -4, 0, 0, 0]
+MUS = np.array([0.1, 1, 1, 1, 1])
 EPSILON = 0.0005
 
 def generate_states():

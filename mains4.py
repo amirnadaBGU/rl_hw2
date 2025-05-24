@@ -109,7 +109,7 @@ def generate_actions_and_init_q(states):
 #     return q_values
 
 def get_optimal_action_according_to_q(q_values,state):
-    best_action = min(q_values[state], key=q_values[state].get)
+    best_action = max(q_values[state], key=q_values[state].get)
     # if state == tuple([False] *5):
     #     print(best_action)
     return best_action
@@ -123,7 +123,7 @@ def update_q(q_values, state,action, next_state, cost,alpha):
     if state == tuple([False, False, True, True, True]):
         if action == tuple([True, False, False, False, False]):
             print('---')
-            print('action:', {action})
+            print('action:', action)
             print(f'same state: {state==next_state}')
             print(f'q value: {q_values[state][action]}')
             print(f'q value next: {q_values[next_state][get_optimal_action_according_to_q(q_values, next_state)]}')
@@ -174,6 +174,7 @@ def q_learning(sub_section,opt_values):
     states = generate_states(len(job_names))
     q_values = generate_actions_and_init_q(states)
     visits = {state: 0 for state in states}
+    visits_per_action = generate_actions_and_init_q(states)
     counter = 0
     max_norm = []
     abs_s0 = []
@@ -187,7 +188,6 @@ def q_learning(sub_section,opt_values):
         # Initial state
         state = env.reset()[0]
         state = convert_sim_state_to_bool_state(state)
-
         for i in range(env.horizon):
             if random.random() < EXPLORATION:
                 action = choose_random_action(state)
@@ -210,6 +210,7 @@ def q_learning(sub_section,opt_values):
             #         print(pc)
 
             visits[state] += 1
+            visits_per_action[state][action] += 1
 
 
             if sub_section == "sub_section_1":
@@ -219,12 +220,13 @@ def q_learning(sub_section,opt_values):
                 alpha = 0.01
 
             elif sub_section == "sub_section_3":
-                alpha = 10 / (100 + visits[state])
+                alpha = 10 / (100 + visits_per_action[state][action])
             else:
                 print("alpha is not defined - crash!")
 
             next_state = convert_sim_state_to_bool_state(next_state)
-            q_values[state][action] += update_q(copy.deepcopy(q_values), state, action, next_state, cost,alpha)
+            q_values_copy = copy.deepcopy(q_values)
+            q_values[state][action] += update_q(q_values_copy, state, action, next_state, cost,alpha)
 
 
             # if state == (False,False,False,False,False):
@@ -274,7 +276,7 @@ def q_learning(sub_section,opt_values):
                 print('i am here')
 
 
-        if counter > 100000:
+        if counter > 500000:
             print(q_values)
             print('-------')
             print(opt_values)
@@ -321,4 +323,4 @@ def q_learning(sub_section,opt_values):
     # plt.show()
 
 opt_policy_values = mains2.evaluate_policy(generate_c_mu_policy(),False)
-values = q_learning("sub_section_3",opt_policy_values)
+values = q_learning("sub_section_2",opt_policy_values)

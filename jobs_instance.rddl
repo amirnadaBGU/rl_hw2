@@ -9,21 +9,21 @@ instance jobs_instance {
   };
 
   non-fluents {
-    mu(j1) = 0.5;
+    mu(j1) = 0.1;
     mu(j2) = 1;
     mu(j3) = 1;
     mu(j4) = 1;
     mu(j5) = 1;
 
-    cost(j1) = 1.0;
-    cost(j2) = 4.0;
-    cost(j3) = 6.0;
-    cost(j4) = 2.0;
-    cost(j5) = 9.0;
+    cost(j1) = -1.0;
+    cost(j2) = -4.0;
+    cost(j3) = 0;
+    cost(j4) = 0;
+    cost(j5) = 0;
   };
 
 
   max-nondef-actions = 1;
-  horizon = 1000;
+  horizon = 10000;
   discount = 1.0;
 }
