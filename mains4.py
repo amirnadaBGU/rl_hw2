@@ -20,7 +20,7 @@ import mains2
 
 # Globals
 EPSILON = 0.00000005
-EXPLORATION = 0.01
+EXPLORATION = 1
 
 # Global variables
 base_path ='./' # '../../Desktop/'
@@ -124,9 +124,11 @@ def update_q(q_values, state,action, next_state, cost,alpha):
     opt_q_next_state = q_values[next_state][get_optimal_action_according_to_q(q_values, next_state)]
     current_q = q_values[state][action]
     new_value = q_values[state][action] + alpha * (cost + opt_q_next_state - current_q)
-    if state == tuple([False] * 5) and action == tuple([True,False,False,False,False]):
-        # print('---------')
-        # print(cost + opt_q_next_state - q_values[state][action])
+    if state == tuple([False,False,True,True,True]) :
+        print('---------')
+        print(action)
+        print(cost + opt_q_next_state - q_values[state][action])
+        print('---------')
         pass
     return new_value
 
