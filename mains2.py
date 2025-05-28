@@ -17,12 +17,12 @@ domain_file = base_path + 'jobs_domain.rddl'
 instance_file = base_path + 'jobs_instance.rddl'
 
 # GLOBALS
-COSTS = [-1, -4, 0, 0, 0]
-MUS = np.array([0.5, 1, 1, 1, 1])
+COSTS = [-1, -4]
+MUS = np.array([0.5, 1])
 EPSILON = 0.05
 
 def generate_states():
-    return list(product([True, False], repeat=5))
+    return list(product([True, False], repeat=2))
 
 def generate_random_policy(states=generate_states()):
     policy = {}
@@ -260,9 +260,7 @@ if __name__ == '__main__':
             # Step the environment
             next_state, cost, _, _, _ = env.step(action)
 
-            was_done = [next_state['was_done___j1'], next_state['was_done___j2']
-                , next_state['was_done___j3'], next_state['was_done___j4']
-                , next_state['was_done___j5']]
+            was_done = [next_state['was_done___j1'], next_state['was_done___j2']]
 
             print(was_done)
             print(cost)

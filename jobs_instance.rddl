@@ -2,22 +2,17 @@ non-fluents nf {
   domain = job_scheduler_domain;
 
   objects {
-    job : {j1, j2, j3, j4, j5};
+    job : {j1, j2};
   };
 
   non-fluents {
     mu(j1) = 0.5;
     mu(j2) = 1;
-    mu(j3) = 1;
-    mu(j4) = 1;
-    mu(j5) = 1;
+
 
 
     cost(j1) = -1.0;
     cost(j2) = -4.0;
-    cost(j3) = 0;
-    cost(j4) = 0;
-    cost(j5) = 0;
   };
 }
 

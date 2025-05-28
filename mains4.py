@@ -124,7 +124,7 @@ def update_q(q_values, state,action, next_state, cost,alpha):
     opt_q_next_state = q_values[next_state][get_optimal_action_according_to_q(q_values, next_state)]
     current_q = q_values[state][action]
     new_value = q_values[state][action] + alpha * (cost + opt_q_next_state - current_q)
-    if state == tuple([False,False,True,True,True]) :
+    if state == tuple([False,False]) :
         print('---------')
         print(action)
         print(cost + opt_q_next_state - q_values[state][action])
@@ -223,7 +223,7 @@ def q_learning(sub_section,opt_values):
             old_policy = copy.deepcopy(policy)
             policy = create_policy_from_q(q_values)
 
-            print(f'visits: {visits[tuple([False]*5)]}')
+            print(f'visits: {visits[tuple([False]*2)]}')
             print("Number of different entries:", count_differences(old_policy, policy))
 
             values = mains2.evaluate_policy(policy, False)
@@ -233,7 +233,7 @@ def q_learning(sub_section,opt_values):
 
             if valid_states:
                 max_norm.append(max(abs(values[s] - opt_values[s]) for s in valid_states_indices))
-                min_q = min(q_values[tuple([False]*5)].values())
+                min_q = min(q_values[tuple([False]*2)].values())
                 abs_s0.append(abs(min_q - opt_values[-1]))
                 print(counter)
                 print(delta)
