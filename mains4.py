@@ -122,8 +122,12 @@ def update_q(q_values, state,action, next_state, cost,alpha):
     # if state == tuple([False] * 5):
     #     print("")
     opt_q_next_state = q_values[next_state][get_optimal_action_according_to_q(q_values, next_state)]
-
-    new_value = q_values[state][action] + alpha * (cost + opt_q_next_state - q_values[state][action])
+    current_q = q_values[state][action]
+    new_value = q_values[state][action] + alpha * (cost + opt_q_next_state - current_q)
+    if state == tuple([False] * 5) and action == tuple([True,False,False,False,False]):
+        # print('---------')
+        # print(cost + opt_q_next_state - q_values[state][action])
+        pass
     return new_value
 
 def create_policy_from_q(q_values):
@@ -236,7 +240,7 @@ def q_learning(sub_section,opt_values):
                 print('i am here')
 
 
-        if counter > 10000:
+        if counter > 100000:
             break
 
 
