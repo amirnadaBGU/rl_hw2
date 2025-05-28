@@ -17,7 +17,7 @@ instance_file = base_path + 'jobs_instance.rddl'
 
 # GLOBALS
 COSTS = [-1, -4, -6, -2, -9]
-MUS = np.array([1, 1, 1, 1, 1])
+MUS = np.array([0.6, 0.5, 0.3, 0.7, 0.1])
 EPSILON = 0.0005
 
 def generate_states():
@@ -187,7 +187,6 @@ def policy_iteration(initial_policy):
 
     return policy, values
 
-
 def c_mu_action(state):
     best_score = float('inf')
     best_job = None
@@ -198,7 +197,6 @@ def c_mu_action(state):
                 best_score = score
                 best_job = i
     return [i == best_job for i in range(len(state))]
-
 
 # Compare the optimal policy π∗ obtained using policy iteration to the cμ law.
 # Also plot V π∗ vs. V πc .

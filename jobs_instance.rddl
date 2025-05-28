@@ -1,19 +1,17 @@
 non-fluents nf {
-}
-
-instance jobs_instance {
-  domain = jobs_domain;
+  domain = job_scheduler_domain;
 
   objects {
     job : {j1, j2, j3, j4, j5};
   };
 
   non-fluents {
-    mu(j1) = 1;
-    mu(j2) = 1;
-    mu(j3) = 1;
-    mu(j4) = 1;
-    mu(j5) = 1;
+    mu(j1) = 0.6;
+    mu(j2) = 0.5;
+    mu(j3) = 0.3;
+    mu(j4) = 0.7;
+    mu(j5) = 0.1;
+
 
     cost(j1) = -1.0;
     cost(j2) = -4.0;
@@ -21,9 +19,13 @@ instance jobs_instance {
     cost(j4) = -2.0;
     cost(j5) = -9.0;
   };
+}
 
+instance jobs_instance {
+  domain = jobs_domain;
+  non-fluents = nf;
 
   max-nondef-actions = 1;
-  horizon = 1000;
+  horizon = 10000;
   discount = 1.0;
 }

@@ -14,7 +14,7 @@ matplotlib.use('TkAgg')
 from itertools import product
 from matplotlib import pyplot as plt
 import math
-
+from mains2 import COSTS
 
 import mains2
 
@@ -40,7 +40,6 @@ def generate_states(num_jobs):
     return list(product([True, False], repeat=num_jobs))
 
 def generate_cost_policy(states):
-    costs = [-1, -4, -6, -2, -9]
     policy = {}
     for state in states:
         state_tuple = tuple(state)  # Use tuple as dictionary key
@@ -54,9 +53,9 @@ def generate_cost_policy(states):
         action_index = 0
 
         for i in false_indices:
-            if costs[i] < max_cost:
+            if COSTS[i] < max_cost:
                 action_index = i
-                max_cost = costs[i]
+                max_cost = COSTS[i]
 
         action = [False] * len(state)
         action[action_index] = True
@@ -237,7 +236,7 @@ def q_learning(sub_section,opt_values):
                 print('i am here')
 
 
-        if counter > 30000:
+        if counter > 10000:
             break
 
 
