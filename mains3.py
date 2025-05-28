@@ -13,9 +13,8 @@ from itertools import product
 from matplotlib import pyplot as plt
 import math
 
-
 import mains2
-
+from mains2 import generate_states, generate_cost_policy,policy_iteration
 # Globals
 EPSILON = 0.00000005
 
@@ -25,32 +24,6 @@ base_path ='./' # '../../Desktop/'
 domain_file = base_path + 'jobs_domain.rddl'
 instance_file = base_path + 'jobs_instance.rddl'
 
-def generate_states(num_jobs):
-    return list(product([True, False], repeat=num_jobs))
-
-def generate_cost_policy(states):
-    costs = [1, 4, 6, 2, 9]
-    policy = {}
-    for state in states:
-        state_tuple = tuple(state)  # Use tuple as dictionary key
-        false_indices = [i for i, val in enumerate(state) if val == False]
-
-        if not false_indices:
-            policy[state_tuple] = [False] * len(state)  # No action possible
-            continue
-
-        max_cost = 0
-        action_index = 0
-
-        for i in false_indices:
-            if costs[i] > max_cost:
-                action_index = i
-                max_cost = costs[i]
-
-        action = [False] * len(state)
-        action[action_index] = True
-        policy[state_tuple] = action
-    return policy
 
 def convert_action_to_sim_action_dict(job_names,bool_action):
     action_dict = {job: val for job, val in zip(job_names, bool_action)}
@@ -65,17 +38,23 @@ def convert_sim_state_to_bool_state(sim_state):
             was_done[index] = sim_state[key]
     return tuple([was_done[i] for i in sorted(was_done)])
 
-def policy_evaluation(sub_section):
+def policy_evaluation(sub_section,policy_name):
     env = pyRDDLGym.make(domain=domain_file, instance=instance_file)
     delta = float('inf')
     job_names = list(env.action_space.keys())  # give me all that is not done
-    states = generate_states(len(job_names))
+    states = generate_states()
     values = {state: 0 for state in states}
     visits = {state: 0 for state in states}
-    policy = generate_cost_policy(states)
+    policy_cost = generate_cost_policy(states)
+
+    if policy_name == 'c':
+        policy = policy_cost
+    elif policy_name == 'cmu':
+        policy, V_star = policy_iteration(initial_policy=policy_cost, graph= False)
+    else:
+        print('print not valid input')
 
     max_norm = []
-
     v_pi_c_raw = mains2.evaluate_policy(policy, False)
     v_pi_c = dict(zip(states, v_pi_c_raw))
 
@@ -120,7 +99,7 @@ def policy_evaluation(sub_section):
             if done:
                 break
 
-        if counter>30000:
+        if counter>20000:
             break
 
         valid_states = [s for s in values if visits[s] > 0 and s in v_pi_c]
@@ -139,7 +118,6 @@ def policy_evaluation(sub_section):
             print(f"Stop: {delta}")
         # print(delta)
         # print("visits: ")
-
 
 
     # Plot V(π_TD) and V(π_c) State Values
@@ -187,9 +165,8 @@ def policy_evaluation(sub_section):
 random.seed(0)
 np.random.seed(0)
 
-
 # Run evaluations and collect max-norm error lists
-max_norm_1 = policy_evaluation("sub_section_1")
+# max_norm_1 = policy_evaluation("sub_section_1")
 # max_norm_2 = policy_evaluation("sub_section_2")
 # max_norm_3 = policy_evaluation("sub_section_3")
 
