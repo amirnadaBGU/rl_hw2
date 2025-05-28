@@ -40,7 +40,7 @@ def generate_states(num_jobs):
     return list(product([True, False], repeat=num_jobs))
 
 def generate_cost_policy(states):
-    costs = [1, 4, 6, 2, 9]
+    costs = [-1, -4, -6, -2, -9]
     policy = {}
     for state in states:
         state_tuple = tuple(state)  # Use tuple as dictionary key
@@ -54,7 +54,7 @@ def generate_cost_policy(states):
         action_index = 0
 
         for i in false_indices:
-            if costs[i] > max_cost:
+            if costs[i] < max_cost:
                 action_index = i
                 max_cost = costs[i]
 
@@ -109,9 +109,9 @@ def generate_actions_and_init_q(states):
 #     return q_values
 
 def get_optimal_action_according_to_q(q_values,state):
-    best_action = min(q_values[state], key=q_values[state].get)
-    if state == tuple([False] *5):
-        print(best_action)
+    best_action = max(q_values[state], key=q_values[state].get)
+    # if state == tuple([False] *5):
+    #     print(best_action)
     return best_action
 
 def choose_random_action(state):
@@ -228,7 +228,8 @@ def q_learning(sub_section,opt_values):
 
             if valid_states:
                 max_norm.append(max(abs(values[s] - opt_values[s]) for s in valid_states_indices))
-                abs_s0.append(abs(values[-1] - opt_values[-1]))
+                min_q = min(q_values[tuple([False]*5)].values())
+                abs_s0.append(abs(min_q - opt_values[-1]))
                 print(counter)
                 print(delta)
             else:
@@ -236,7 +237,7 @@ def q_learning(sub_section,opt_values):
                 print('i am here')
 
 
-        if counter > 5000:
+        if counter > 30000:
             break
 
 

@@ -16,8 +16,8 @@ domain_file = base_path + 'jobs_domain.rddl'
 instance_file = base_path + 'jobs_instance.rddl'
 
 # GLOBALS
-COSTS = [1, 4, 6, 2, 9]
-MUS = np.array([0.6, 0.5, 0.3, 0.7, 0.1])
+COSTS = [-1, -4, -6, -2, -9]
+MUS = np.array([1, 1, 1, 1, 1])
 EPSILON = 0.0005
 
 def generate_states():
@@ -53,7 +53,7 @@ def generate_cost_policy(states=generate_states()):
         action_index = 0
 
         for i in false_indices:
-            if COSTS[i] > max_cost:
+            if COSTS[i] < max_cost:
                 action_index = i
                 max_cost = COSTS[i]
 
@@ -122,7 +122,7 @@ def policy_iteration(initial_policy):
     def find_best_action(states, index, values):
         state = states[index]
         false_indices = [i for i, val in enumerate(state) if not val]
-        min_Q = float('inf')
+        min_Q = -float('inf')
         best_action = [False] * len(state)
 
         if not false_indices:
@@ -135,7 +135,7 @@ def policy_iteration(initial_policy):
 
             q = calc_value(states, index, action, values)
 
-            if q < min_Q:
+            if q > min_Q:
                 min_Q = q
                 best_action = action
 
@@ -189,12 +189,12 @@ def policy_iteration(initial_policy):
 
 
 def c_mu_action(state):
-    best_score = -float('inf')
+    best_score = float('inf')
     best_job = None
     for i, done in enumerate(state):
         if not done:
             score = COSTS[i] * MUS[i]
-            if score > best_score:
+            if score < best_score:
                 best_score = score
                 best_job = i
     return [i == best_job for i in range(len(state))]
