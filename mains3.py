@@ -38,7 +38,7 @@ def convert_sim_state_to_bool_state(sim_state):
             was_done[index] = sim_state[key]
     return tuple([was_done[i] for i in sorted(was_done)])
 
-def policy_evaluation(sub_section,policy_name):
+def policy_evaluation(sub_section,policy_name='c'):
     env = pyRDDLGym.make(domain=domain_file, instance=instance_file)
     delta = float('inf')
     job_names = list(env.action_space.keys())  # give me all that is not done
@@ -58,7 +58,7 @@ def policy_evaluation(sub_section,policy_name):
     v_pi_c_raw = mains2.evaluate_policy(policy, False)
     v_pi_c = dict(zip(states, v_pi_c_raw))
 
-    v_pi_c_so = v_pi_c[tuple([False]*len(states[0]))]
+    v_pi_c_so = v_pi_c[tuple([False]*len(states[0]))] # Scalar
     v_TD_so = []
 
 
@@ -80,8 +80,6 @@ def policy_evaluation(sub_section,policy_name):
 
             visits[state] += 1
 
-            alpha = 0.01
-
             if sub_section == "sub_section_1":
                 alpha = 1/visits[state]
 
@@ -90,6 +88,8 @@ def policy_evaluation(sub_section,policy_name):
 
             elif sub_section == "sub_section_3":
                 alpha = 10/(100 + visits[state])
+            else:
+                print("error - function crash!")
 
             current_value = values[state]
             values[state] = current_value + alpha * (cost + values[next_state] - current_value)
@@ -102,6 +102,7 @@ def policy_evaluation(sub_section,policy_name):
         if counter>20000:
             break
 
+        # The norm is being calculated only from states that where visited (other states values are ont participated)
         valid_states = [s for s in values if visits[s] > 0 and s in v_pi_c]
         if valid_states:
             max_norm.append(max(abs(v_pi_c[s] - values[s]) for s in valid_states))
@@ -132,33 +133,34 @@ def policy_evaluation(sub_section,policy_name):
     plt.tight_layout()
     plt.show()
 
-    delta_s0 = abs(v_TD_so - v_pi_c_so)
-    # Plot V(π_TD)(s0) vs V(π_c)(s0)
-    plt.figure()
-    plt.plot(delta_s0, marker='o', linewidth=1)
-    plt.xlabel("Episode")
-    plt.ylabel("Absolute Error")
-    plt.title("|V(π_TD)(S0) - V(π_c)(S0)| VS Episode")
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()
-
     if sub_section == "sub_section_1":
         alpha = "1/n_visits"
     elif sub_section == "sub_section_2":
         alpha = "0.01"
     elif sub_section == "sub_section_3":
         alpha = "10/(100+n_visits)"
-    plt.plot(max_norm, label=f"{sub_section}, alpha: {alpha}")
-    plt.title(r"$\|V^{\pi_c} - \hat{V}_{TD}\|_\infty$ over Episodes")
-    plt.xlabel("Episode")
-    plt.ylabel("Infinity Norm Error")
+
+    # Plot Norm (V(π_TD) - V(π_c)) vs Episode
+    plt.plot(max_norm)
+    plt.title(r"$\|V^{\pi_c} - \hat{V}_{TD}\|_\infty$ over Episodes, alpha: "+ alpha, fontsize=14)
+    plt.xlabel("Episode", fontsize=12)
+    plt.ylabel("Infinity Norm Error", fontsize=12)
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
     plt.show()
 
+    # Plot V(π_TD)(s0) - V(π_c)(s0) vs Episode
+    delta_s0 = abs(v_TD_so - v_pi_c_so)
+    plt.figure()
+    plt.plot(delta_s0)
+    plt.xlabel("Episode",fontsize=12)
+    plt.ylabel("Absolute Error",fontsize=12)
+    plt.title(f"|V(π_TD)(S0) - V(π_c)(S0)| VS Episode, alpha: {alpha}",fontsize=14)
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
 
     return max_norm
 
@@ -166,9 +168,9 @@ random.seed(0)
 np.random.seed(0)
 
 # Run evaluations and collect max-norm error lists
-# max_norm_1 = policy_evaluation("sub_section_1")
-# max_norm_2 = policy_evaluation("sub_section_2")
-# max_norm_3 = policy_evaluation("sub_section_3")
+max_norm_1 = policy_evaluation("sub_section_1")
+max_norm_2 = policy_evaluation("sub_section_2")
+max_norm_3 = policy_evaluation("sub_section_3")
 
 
 

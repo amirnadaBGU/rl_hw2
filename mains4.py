@@ -280,4 +280,4 @@ def q_learning(sub_section,opt_values):
     plt.show()
 
 opt_policy_values = mains2.evaluate_policy(generate_c_mu_policy(),False)
-values = q_learning("sub_section_1",opt_policy_values)
+values = q_learning("sub_section_3",opt_policy_values)
