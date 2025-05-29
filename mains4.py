@@ -24,8 +24,8 @@ EXPLORATION = 1
 
 # Global variables
 base_path ='./' # '../../Desktop/'
-domain_file = base_path + 'jobs_domain.rddl'
-instance_file = base_path + 'jobs_instance.rddl'
+domain_file = base_path + 'cmu_domain.rddl'
+instance_file = base_path + 'cmu_instance.rddl'
 
 def generate_c_mu_policy():
     env = pyRDDLGym.make(domain=domain_file, instance=instance_file)
@@ -69,10 +69,10 @@ def convert_action_to_sim_action_dict(job_names,bool_action):
 def convert_sim_state_to_bool_state(sim_state):
     was_done = {}
     for key in sim_state.keys():
-        match = re.match(r'was_done___j(\d+)', key)
+        match = re.match(r'pending___j(\d+)', key)
         if match:
             index = int(match.group(1)) - 1  # convert j1-based to 0-based
-            was_done[index] = sim_state[key]
+            was_done[index] = ~sim_state[key]
     return tuple([was_done[i] for i in sorted(was_done)])
 
 def generate_actions_per_state(state):
@@ -88,7 +88,6 @@ def generate_actions_per_state(state):
         list_of_actions.append(tuple(action))
     return list_of_actions
 
-
 def generate_actions_and_init_q(states):
     dict_of_q_values = {}
     for state in states:
@@ -97,15 +96,6 @@ def generate_actions_and_init_q(states):
         for action in actions:
             dict_of_q_values[state][action] = 0  # Init Q-value to 0.0 (float)
     return dict_of_q_values
-
-#
-# def init_q(states,actions):
-#     q_values = {}
-#     for state in states:
-#         q_values[state] = {}
-#         for action in actions:
-#             q_values[state][action] = 0
-#     return q_values
 
 def get_optimal_action_according_to_q(q_values,state):
     best_action = max(q_values[state], key=q_values[state].get)
@@ -125,11 +115,11 @@ def update_q(q_values, state,action, next_state, cost,alpha):
     current_q = q_values[state][action]
     new_value = q_values[state][action] + alpha * (cost + opt_q_next_state - current_q)
     if state == tuple([False,False]) :
-        print('---------')
-        print(action)
-        print(cost + opt_q_next_state - q_values[state][action])
-        print('---------')
-        pass
+            print('---------')
+            print(action)
+            print(new_value)
+            print(cost + opt_q_next_state - q_values[state][action])
+            print('---------')
     return new_value
 
 def create_policy_from_q(q_values):
@@ -165,7 +155,7 @@ def q_learning(sub_section,opt_values):
     abs_s0 = []
     policy = create_policy_from_q(q_values)
 
-    while delta > EPSILON:
+    while True:
         old_q_values = copy.deepcopy(q_values)
         counter+=1
         # Initial state
@@ -182,7 +172,6 @@ def q_learning(sub_section,opt_values):
             # Step the environment
             next_state, cost, done, _, _ = env.step(action_sim)
             # print(next_state)
-
             visits[state] += 1
             alpha = 0.01
 
@@ -207,17 +196,17 @@ def q_learning(sub_section,opt_values):
             if done:
                 break
 
-        max_delta = 0.0
-        for state in q_values:
-            for action in q_values[state]:
-                delta = abs(q_values[state][action] - old_q_values[state][action])
-                if delta > max_delta:
-                    max_delta = delta
-
-        if max_delta < EPSILON:
-            break
-        else:
-            delta = max_delta
+        # max_delta = 0.0
+        # for state in q_values:
+        #     for action in q_values[state]:
+        #         delta = abs(q_values[state][action] - old_q_values[state][action])
+        #         if delta > max_delta:
+        #             max_delta = delta
+        #
+        # if max_delta < EPSILON:
+        #     break
+        # else:
+        #     delta = max_delta
 
         if counter % 100 == 0:
             old_policy = copy.deepcopy(policy)
