@@ -13,8 +13,8 @@ matplotlib.use('TkAgg')
 from itertools import product
 from matplotlib import pyplot as plt
 import math
-from mains2 import COSTS,generate_c_mu_policy,generate_states,generate_cost_policy
-
+from mains2 import generate_c_mu_policy,generate_states
+from mains3 import convert_action_to_sim_action_dict,convert_sim_state_to_bool_state
 import mains2
 
 """""""""""""""""""""""""""
@@ -31,19 +31,6 @@ domain_file = base_path + 'jobs_domain.rddl'
 instance_file = base_path + 'jobs_instance.rddl'
 
 
-def convert_action_to_sim_action_dict(job_names,bool_action):
-    action_dict = {job: val for job, val in zip(job_names, bool_action)}
-    return action_dict
-
-def convert_sim_state_to_bool_state(sim_state):
-    was_done = {}
-    for key in sim_state.keys():
-        match = re.match(r'was_done___j(\d+)', key)
-        if match:
-            index = int(match.group(1)) - 1  # convert j1-based to 0-based
-            was_done[index] = sim_state[key]
-    return tuple([was_done[i] for i in sorted(was_done)])
-
 def generate_actions_per_state(state):
     list_of_actions = []
     false_indices = [i for i, val in enumerate(state) if val == False]
@@ -57,7 +44,6 @@ def generate_actions_per_state(state):
         list_of_actions.append(tuple(action))
     return list_of_actions
 
-
 def generate_actions_and_init_q(states):
     dict_of_q_values = {}
     for state in states:
@@ -67,11 +53,8 @@ def generate_actions_and_init_q(states):
             dict_of_q_values[state][action] = 0  # Init Q-value to 0.0 (float)
     return dict_of_q_values
 
-
 def get_optimal_action_according_to_q(q_values,state):
     best_action = max(q_values[state], key=q_values[state].get)
-    # if state == tuple([False] *5):
-    #     print(best_action)
     return best_action
 
 def choose_random_action(state):
@@ -80,15 +63,9 @@ def choose_random_action(state):
     return random_action
 
 def update_q(q_values, state,action, next_state, cost,alpha):
-    # if state == tuple([False] * 5):
-    #     print("")
     opt_q_next_state = q_values[next_state][get_optimal_action_according_to_q(q_values, next_state)]
     current_q = q_values[state][action]
     new_value = q_values[state][action] + alpha * (cost + opt_q_next_state - current_q)
-    if state == tuple([False] * 5) and action == tuple([True,False,False,False,False]):
-        # print('---------')
-        # print(cost + opt_q_next_state - q_values[state][action])
-        pass
     return new_value
 
 def create_policy_from_q(q_values):
@@ -158,11 +135,9 @@ def q_learning(sub_section,opt_values):
             next_state = convert_sim_state_to_bool_state(next_state)
             q_values[state][action] = update_q(copy.deepcopy(q_values), state, action, next_state, cost,alpha)
 
-            # if state == (False,False,False,False,False):
-            #     print(alpha)
+
             state = tuple(list(next_state).copy())
 
-            # log data
             if done:
                 break
 
@@ -244,5 +219,12 @@ def q_learning(sub_section,opt_values):
     plt.tight_layout()
     plt.show()
 
-opt_policy_values = mains2.evaluate_policy(generate_c_mu_policy(),False)
-values = q_learning("sub_section_3",opt_policy_values)
+if __name__ == '__main__':
+
+    # sub_section_1 - alpha = 1/no.of visits to Sn
+    # sub_section_2 - alpha = 0.01
+    # sub_section_3 - alpha = 10/(100 + no.of visits to Sn)
+
+    random.seed(0)
+    opt_policy_values = mains2.evaluate_policy(generate_c_mu_policy(),False)
+    values = q_learning("sub_section_3",opt_policy_values)

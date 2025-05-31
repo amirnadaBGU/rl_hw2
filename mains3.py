@@ -169,13 +169,16 @@ def policy_evaluation(sub_section,policy_name='c'):
 
     return max_norm
 
-random.seed(0)
-np.random.seed(0)
+if __name__ == '__main__':
 
-# Run evaluations and collect max-norm error lists
-max_norm_1 = policy_evaluation("sub_section_1")
-max_norm_2 = policy_evaluation("sub_section_2")
-max_norm_3 = policy_evaluation("sub_section_3")
+    # sub_section_1 - alpha = 1/no.of visits to Sn
+    # sub_section_2 - alpha = 0.01
+    # sub_section_3 - alpha = 10/(100 + no.of visits to Sn)
+
+    random.seed(0)
+    max_norm_1 = policy_evaluation("sub_section_1")
+    max_norm_2 = policy_evaluation("sub_section_2")
+    max_norm_3 = policy_evaluation("sub_section_3")
 
 
 
