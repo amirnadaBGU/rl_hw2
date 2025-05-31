@@ -24,10 +24,12 @@ COSTS = [-1, -4, -6, -2, -9]
 MUS = np.array([0.6, 0.5, 0.3, 0.7, 0.1])
 EPSILON = 0.05
 
-def generate_states():
-    return list(product([True, False], repeat=5))
+def generate_states(num_states=5):
+    # Generates states
+    return list(product([True, False], repeat=num_states))
 
 def generate_random_policy(states=generate_states()):
+    # Function that generates random policy
     policy = {}
     for state in states:
         state_tuple = tuple(state)  # Use tuple as dictionary key
@@ -44,6 +46,7 @@ def generate_random_policy(states=generate_states()):
     return policy
 
 def generate_cost_policy(states=generate_states()):
+    # Function that generates cost policy (max(|cost|) job is chosen)
     policy = {}
     for state in states:
         state_tuple = tuple(state)  # Use tuple as dictionary key
@@ -66,18 +69,40 @@ def generate_cost_policy(states=generate_states()):
         policy[state_tuple] = action
     return policy
 
+def generate_c_mu_policy():
+    # Generates CMU policy (max(|cost* mu|) job is chosen)
+    states = generate_states()
+    policy ={}
+    for state in states:
+        policy[state] = c_mu_action(state)
+    return policy
+
+def c_mu_action(state):
+    # Returns optimal action according to CMU policy
+    best_score = float('inf')
+    best_job = None
+    for i, done in enumerate(state):
+        if not done:
+            score = COSTS[i] * MUS[i]
+            if score < best_score:
+                best_score = score
+                best_job = i
+    return [i == best_job for i in range(len(state))]
+
 def get_mu(action):
-    #mus = np.array([1, 1, 1, 1, 1])
+    # Function that calculates the mu for specific job that being done with an action
     action = np.array(action, dtype=float)
     return np.dot(MUS, action)
 
 def get_next_state(state, action):
+    # Function that calculate what should be the next state, given previous state and an action
     state = np.array(state, dtype=bool)
     action = np.array(action, dtype=bool)
     next_state = tuple(state | action)
     return next_state
 
 def get_total_cost(state):
+    # Calculates the costs of all the jobs have not been done yet in a state
     return sum(COSTS) - np.dot(COSTS, state)
 
 def calc_value (states,index,action,values):
@@ -222,26 +247,6 @@ def policy_iteration(initial_policy, graph):
         plt.show()
 
     return policy, values
-
-def c_mu_action(state):
-    # Returns optimal action according to CMU policy
-    best_score = float('inf')
-    best_job = None
-    for i, done in enumerate(state):
-        if not done:
-            score = COSTS[i] * MUS[i]
-            if score < best_score:
-                best_score = score
-                best_job = i
-    return [i == best_job for i in range(len(state))]
-
-def generate_c_mu_policy():
-    # Generates CMU policy
-    states = generate_states()
-    policy ={}
-    for state in states:
-        policy[state] = c_mu_action(state)
-    return policy
 
 if __name__ == '__main__':
     section_0 = False # Draft

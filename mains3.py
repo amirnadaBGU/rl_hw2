@@ -24,12 +24,17 @@ base_path ='./' # '../../Desktop/'
 domain_file = base_path + 'jobs_domain.rddl'
 instance_file = base_path + 'jobs_instance.rddl'
 
+"""""""""""""""""""""""""""
+Question 2   -   Learning 1
+"""""""""""""""""""""""""""
 
 def convert_action_to_sim_action_dict(job_names,bool_action):
+    # Converts actions from internal format to simulator format
     action_dict = {job: val for job, val in zip(job_names, bool_action)}
     return action_dict
 
 def convert_sim_state_to_bool_state(sim_state):
+    # Converts state from simulator format to internal format
     was_done = {}
     for key in sim_state.keys():
         match = re.match(r'was_done___j(\d+)', key)
@@ -39,6 +44,7 @@ def convert_sim_state_to_bool_state(sim_state):
     return tuple([was_done[i] for i in sorted(was_done)])
 
 def policy_evaluation(sub_section,policy_name='c'):
+    # Do Temporal Difference Policy Evaluation
     env = pyRDDLGym.make(domain=domain_file, instance=instance_file)
     delta = float('inf')
     job_names = list(env.action_space.keys())  # give me all that is not done
@@ -65,6 +71,7 @@ def policy_evaluation(sub_section,policy_name='c'):
     counter = 0
     while delta > EPSILON:
         counter+=1
+
         # Initial state
         state = env.reset()[0]
         state = convert_sim_state_to_bool_state(state)
@@ -74,8 +81,8 @@ def policy_evaluation(sub_section,policy_name='c'):
             action = policy[state]
             action = convert_action_to_sim_action_dict(job_names, action)
             # Step the environment
+
             next_state, cost, done, _, _ = env.step(action)
-            # print(next_state)
             next_state = convert_sim_state_to_bool_state(next_state)
 
             visits[state] += 1
@@ -102,13 +109,13 @@ def policy_evaluation(sub_section,policy_name='c'):
         if counter>20000:
             break
 
-        # The norm is being calculated only from states that where visited (other states values are ont participated)
+        # The norm is being calculated only from states that where visited (other states values are not participated)
         valid_states = [s for s in values if visits[s] > 0 and s in v_pi_c]
         if valid_states:
             max_norm.append(max(abs(v_pi_c[s] - values[s]) for s in valid_states))
         else:
             max_norm.append(0)  # Fallback in case nothing was visited yet
-            print('i am here')
+            print('Fallback - max norm added with zero')
 
         v_TD_so.append(values[tuple([False] * len(states[0]))])
         delta = max(abs(old_values[s] - values[s]) for s in states)
@@ -117,8 +124,6 @@ def policy_evaluation(sub_section,policy_name='c'):
             print(delta)
         if delta <= EPSILON:
             print(f"Stop: {delta}")
-        # print(delta)
-        # print("visits: ")
 
 
     # Plot V(π_TD) and V(π_c) State Values

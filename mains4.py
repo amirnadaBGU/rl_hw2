@@ -3,7 +3,6 @@ import itertools
 import random
 import re
 
-# from pipes import stepkinds
 
 import pyRDDLGym
 import numpy as np
@@ -14,53 +13,23 @@ matplotlib.use('TkAgg')
 from itertools import product
 from matplotlib import pyplot as plt
 import math
-from mains2 import COSTS
+from mains2 import COSTS,generate_c_mu_policy,generate_states,generate_cost_policy
 
 import mains2
 
-# Globals
-EPSILON = 0.00000005
-EXPLORATION = 0.01
+"""""""""""""""""""""""""""
+Question 2   - Learning 2,3
+"""""""""""""""""""""""""""
 
-# Global variables
+# Globals
+EPSILON = 0.00005
+EXPLORATION = 0.1
+
+# Global Paths
 base_path ='./' # '../../Desktop/'
 domain_file = base_path + 'jobs_domain.rddl'
 instance_file = base_path + 'jobs_instance.rddl'
 
-def generate_c_mu_policy():
-    env = pyRDDLGym.make(domain=domain_file, instance=instance_file)
-    job_names = list(env.action_space.keys())  # give me all that is not done
-    states = generate_states(len(job_names))
-    policy ={}
-    for state in states:
-        policy[state] = mains2.c_mu_action(state)
-    return policy
-
-def generate_states(num_jobs):
-    return list(product([True, False], repeat=num_jobs))
-
-def generate_cost_policy(states):
-    policy = {}
-    for state in states:
-        state_tuple = tuple(state)  # Use tuple as dictionary key
-        false_indices = [i for i, val in enumerate(state) if val == False]
-
-        if not false_indices:
-            policy[state_tuple] = [False] * len(state)  # No action possible
-            continue
-
-        max_cost = 0
-        action_index = 0
-
-        for i in false_indices:
-            if COSTS[i] < max_cost:
-                action_index = i
-                max_cost = COSTS[i]
-
-        action = [False] * len(state)
-        action[action_index] = True
-        policy[state_tuple] = action
-    return policy
 
 def convert_action_to_sim_action_dict(job_names,bool_action):
     action_dict = {job: val for job, val in zip(job_names, bool_action)}
@@ -98,14 +67,6 @@ def generate_actions_and_init_q(states):
             dict_of_q_values[state][action] = 0  # Init Q-value to 0.0 (float)
     return dict_of_q_values
 
-#
-# def init_q(states,actions):
-#     q_values = {}
-#     for state in states:
-#         q_values[state] = {}
-#         for action in actions:
-#             q_values[state][action] = 0
-#     return q_values
 
 def get_optimal_action_according_to_q(q_values,state):
     best_action = max(q_values[state], key=q_values[state].get)
