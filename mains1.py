@@ -14,7 +14,7 @@ instance_file = base_path + 'bandit_instance.rddl'
 
 # GLOBALS
 HORIZON = 20000 # suppose to be 20000
-N_LOOPS = 1 # suppose to be 20
+N_LOOPS = 20 # suppose to be 20
 MEAN_BEST_REWARD_PER_ACTION = 100.0/101.0 # for regret calculations
 
 def do_single_run_ucb1_policy():
@@ -24,7 +24,7 @@ def do_single_run_ucb1_policy():
         return:
         ______
             rewards - list of rewards. Shape: [r,r,r...] - length HORIZON
-        """
+    """
     # Create the environment
     myEnv = pyRDDLGym.make(domain=domain_file, instance=instance_file)
     # Extract arm names from action space
@@ -36,7 +36,7 @@ def do_single_run_ucb1_policy():
     rewards = []
     num_of_pulls_per_arm = np.zeros(len(arm_names))
 
-
+    # First, try each arm once (could also be obtained by UCB1 automatically)
     for i in range(len(arm_names)):
         # Choose a arm in a sequntial order
         chosen_arm = arm_names[i]
@@ -55,7 +55,7 @@ def do_single_run_ucb1_policy():
         # Update rewards
         rewards.append(reward)
 
-
+    # Secondly act greedily with respect to UCB1
     for i in range(HORIZON-len(arm_names)):
         num_of_pulls = sum(num_of_pulls_per_arm)
 
@@ -167,23 +167,26 @@ def do_single_run_random_policy():
         rewards.append(reward)
     return rewards
 
-def plot_rew_reg(rew_reg,headline):
+def plot_rew_reg(rew_reg,label,rew_reg_str='regret'):
     """
     function that plots a single graph of cumulative np array. can be rewards or regrest
     ______
     input:
         rew_reg - average rewards/regret np array. Shaoe: [ar,ar,ar,....ar] - HORIZON
-        headline - string headline provided by the user
+        label - string headline provided by the user - method
+        rew_reg_str - reward or regret plot
     """
     cumulative_rew_reg = np.cumsum(rew_reg)
     avg_total_rew_reg = np.mean(rew_reg)
-    print(f"Policy: {headline}, average quantity over {HORIZON} steps = {avg_total_rew_reg:.3f}")
-    plt.plot(cumulative_rew_reg, marker='.', linewidth=0.5, markersize=2)
+    print(f"Policy: {label}, average quantity over {HORIZON} steps = {avg_total_rew_reg:.3f}")
+    plt.plot(cumulative_rew_reg, marker='.', linewidth=0.5, markersize=2,label=label)
     plt.xlabel('Step')
-    plt.ylabel('Reward')
-    plt.title(f'Policy: {headline} - Rewards per Step')
+    if rew_reg_str == 'regret':
+        plt.ylabel('Regret')
+    else:
+        plt.ylabel('Reward')
+    plt.title(f'Three Policies - Average Cumulative Regret VS Step (20 experiments each)')
     plt.grid(True)
-    plt.show()
 
 def full_plot_run(policy):
     """
@@ -193,8 +196,8 @@ def full_plot_run(policy):
     intput:
         policy - function that runs a simulation with specific policy
     """
-    random_rewards_all_runs = []
-    random_regrets_all_runs = []
+    rewards_all_runs = []
+    regrets_all_runs = []
     for k in range(N_LOOPS):
         print(f"Start {k+1} Run!")
         # Collect rewards - Shape [r,r,r....] - length horizon
@@ -204,16 +207,16 @@ def full_plot_run(policy):
         regrets_per_run = MEAN_BEST_REWARD_PER_ACTION * np.ones(len(rewards_per_run))-rewards_per_run
 
         # Summing - Shape [[r,r,r....],[r,r,r....]] - [[length horizon],] - length 20
-        random_rewards_all_runs.append(rewards_per_run)
-        random_regrets_all_runs.append(regrets_per_run)
+        rewards_all_runs.append(rewards_per_run)
+        regrets_all_runs.append(regrets_per_run)
         print(f"Finish {k + 1} Run!")
     # Shaing as numpy array from list
-    random_rewards_all_runs = np.array(random_rewards_all_runs)
-    random_regrets_all_runs = np.array(random_regrets_all_runs)
+    rewards_all_runs = np.array(rewards_all_runs)
+    regrets_all_runs = np.array(regrets_all_runs)
 
     # Average value per step - Shape [av_r,av_r.....] - length Horizon
-    average_rewards = np.mean(random_rewards_all_runs, axis=0)
-    average_regrets = np.mean(random_regrets_all_runs, axis=0)
+    average_rewards = np.mean(rewards_all_runs, axis=0)
+    average_regrets = np.mean(regrets_all_runs, axis=0)
 
     # Do ploting
     if policy is do_single_run_random_policy:
@@ -223,11 +226,13 @@ def full_plot_run(policy):
     elif policy is do_single_run_ucb1_policy:
         headline = "UCB1 Policy"
 
-    plot_rew_reg(average_rewards, headline=f"{headline} Rewards")
-    plot_rew_reg(average_regrets, headline=f"{headline} Regrets")
+    # plot_rew_reg(average_rewards, headline=f"{headline}")
+    plot_rew_reg(average_regrets, label=f"{headline}")
 
 
 if __name__ == '__main__':
     full_plot_run(do_single_run_random_policy)
-    #full_plot_run(do_single_run_greedy_policy)
-    #full_plot_run(do_single_run_ucb1_policy)
+    full_plot_run(do_single_run_greedy_policy)
+    full_plot_run(do_single_run_ucb1_policy)
+    plt.legend()
+    plt.show()
