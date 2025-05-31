@@ -10,13 +10,16 @@ from itertools import product
 from matplotlib import pyplot as plt
 import math
 
+"""""""""""""""""""""
+Question 2 - Planning
+"""""""""""""""""""""
 
-# Global variables
+# Global Paths
 base_path ='./' # '../../Desktop/'
 domain_file = base_path + 'jobs_domain.rddl'
 instance_file = base_path + 'jobs_instance.rddl'
 
-# GLOBALS
+# Global Variables
 COSTS = [-1, -4, -6, -2, -9]
 MUS = np.array([0.6, 0.5, 0.3, 0.7, 0.1])
 EPSILON = 0.05
@@ -78,6 +81,8 @@ def get_total_cost(state):
     return sum(COSTS) - np.dot(COSTS, state)
 
 def calc_value (states,index,action,values):
+    # Function that updates value for a single state
+    # ( When policy is deterministic it is equivalent to calculte q value)
     state = states[index]
     mu = get_mu(action)
     next_state = get_next_state(state,action)
@@ -85,15 +90,21 @@ def calc_value (states,index,action,values):
     new_value = get_total_cost(state) + values[index]*(1-mu) + values[next_state_index]*(mu)
     return new_value
 
-def init_values(states):
+def init_values(states,method='zeros'):
+    # Init values array
     values = []
     for s, state in enumerate(states):
-        # value = get_total_cost(state)
-        value = 0
+        if method == 'zeros':
+            value = 0
+        elif method == 'total_cost':
+            value = get_total_cost(state)
+        else:
+            print("Error initializing values, please choose a valid method")
         values.append(value)
     return values
 
 def evaluate_policy(policy, graph = True):
+    # Iterative Policy Evaluation
     states = generate_states()
     values = init_values(states)
     new_values = values.copy()
@@ -113,19 +124,18 @@ def evaluate_policy(policy, graph = True):
     return values
 
 def plot_value_history(value_history, states, max_legend_cols=4):
+    # Plotting function
+
     value_history = np.array(value_history)
     assert value_history.shape[1] == len(states), "Mismatch between value history and number of states"
 
     plt.figure(figsize=(20, 10))
 
-    # Use tab20 for distinct colors
-    base_colors = plt.get_cmap("tab20").colors  # 20 distinct RGB colors
-    colors = base_colors[:16] + base_colors[16:]  # Use full 20
+    base_colors = plt.get_cmap("tab20").colors
+    colors = base_colors[:16] + base_colors[16:]
 
-    # 8 unique line styles
     line_styles = ['-', '--', '-.', ':', (0, (3, 1, 1, 1)), (0, (5, 1)), (0, (1, 1)), (0, (1, 2))]
 
-    # Generate (color, linestyle) pairs
     combinations = [(color, style) for style in line_styles for color in colors]
     assert len(combinations) >= len(states), "Not enough unique combinations"
 
@@ -144,7 +154,10 @@ def plot_value_history(value_history, states, max_legend_cols=4):
 
 def policy_iteration(initial_policy, graph):
 
+    # Do policy iteration, each step - evaluate the policy and then update it greedily according to best q value
+
     def find_best_action(states, index, values):
+        # Function that returns optimal action from a state
         state = states[index]
         false_indices = [i for i, val in enumerate(state) if not val]
         max_Q = -float('inf')
@@ -154,11 +167,12 @@ def policy_iteration(initial_policy, graph):
             return best_action
 
         for i in false_indices:
+            # Iterate over all possible actions
             action = [False] * len(state)
             action[i] = True
 
+            # Calculate q value for state,action combo:
             q = calc_value(states, index, action, values)
-
             if q > max_Q:
                 max_Q = q
                 best_action = action
@@ -168,7 +182,7 @@ def policy_iteration(initial_policy, graph):
     delta = float('inf')
     states = generate_states()
 
-    # LOOP
+    # Loop:
     values = init_values(states)
     new_values = values.copy()
     policy = initial_policy.copy()
@@ -181,26 +195,24 @@ def policy_iteration(initial_policy, graph):
         for index, state in enumerate(states):
             new_values[index] = calc_value(states, index, policy[state], values)
 
-        # Policy improvment
+        # Policy improvement
         for index, state in enumerate(states):
             best_action = find_best_action(states, index, new_values)
             new_policy[state] = best_action
 
+        # Calculates stopping condition and saves history for plotting
         delta = np.max(np.abs(np.array(values) - np.array(new_values)))
         value_history.append(new_values.copy())
 
+        # Update values and policy
         values = new_values.copy()
         policy = new_policy.copy()
 
+    # Plot value function convergence
     if graph:
-        # Plot value function convergence
         value_history = np.array(value_history)
         plt.figure()
-        # for i in range(value_history.shape[1]):
-        #     plt.plot(value_history[:, i], label=f"State {i}")
-
         plt.plot(value_history[:, -1])
-
         plt.xlabel("Iteration")
         plt.ylabel("V(S0)")
         plt.title("Value of S0 Function Convergence During Policy Iteration")
@@ -212,6 +224,7 @@ def policy_iteration(initial_policy, graph):
     return policy, values
 
 def c_mu_action(state):
+    # Returns optimal action according to CMU policy
     best_score = float('inf')
     best_job = None
     for i, done in enumerate(state):
@@ -223,34 +236,21 @@ def c_mu_action(state):
     return [i == best_job for i in range(len(state))]
 
 def generate_c_mu_policy():
-    env = pyRDDLGym.make(domain=domain_file, instance=instance_file)
-    job_names = list(env.action_space.keys())  # give me all that is not done
+    # Generates CMU policy
     states = generate_states()
     policy ={}
     for state in states:
         policy[state] = c_mu_action(state)
     return policy
 
-# Compare the optimal policy π∗ obtained using policy iteration to the cμ law.
-# Also plot V π∗ vs. V πc .
-
-def comparison_optimal_policy_and_cm():
-    print()
-
-
 if __name__ == '__main__':
     section_0 = False # Draft
     section_3 = False # Corresponds to question planning 3
     section_4 = False # Corresponds to question planning 4
-    section_5 = True # Corresponds to question planning 5
+    section_5 = True  # Corresponds to question planning 5
 
     if section_0:
-        # policy_evaluation()
         env = pyRDDLGym.make(domain=domain_file, instance=instance_file)
-        # while True:
-        #     avaliable_job_names = list(env.action_space.keys()) #give me all that is not done
-        #     if avaliable job names i empty then break,
-        #     else do some job according to your policy.
 
         job_names = list(env.action_space.keys()) #give me all that is not done
         tc = 0
