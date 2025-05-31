@@ -180,13 +180,16 @@ def plot_rew_reg(rew_reg,label,rew_reg_str='regret'):
     avg_total_rew_reg = np.mean(rew_reg)
     print(f"Policy: {label}, average quantity over {HORIZON} steps = {avg_total_rew_reg:.3f}")
     plt.plot(cumulative_rew_reg, marker='.', linewidth=0.5, markersize=2,label=label)
-    plt.xlabel('Step')
+    plt.xlabel('Step',fontsize=22)
     if rew_reg_str == 'regret':
-        plt.ylabel('Regret')
+        plt.ylabel('Regret',fontsize=22)
     else:
-        plt.ylabel('Reward')
-    plt.title(f'Three Policies - Average Cumulative Regret VS Step (20 experiments each)')
+        plt.ylabel('Reward',fontsize=22)
+    plt.title(f'Three Policies - Average Cumulative Regret VS Step (20 experiments each)', fontsize=30)
     plt.grid(True)
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
+    plt.legend(fontsize=20)
 
 def full_plot_run(policy):
     """
@@ -234,5 +237,4 @@ if __name__ == '__main__':
     full_plot_run(do_single_run_random_policy)
     full_plot_run(do_single_run_greedy_policy)
     full_plot_run(do_single_run_ucb1_policy)
-    plt.legend()
     plt.show()
