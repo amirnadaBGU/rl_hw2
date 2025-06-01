@@ -125,19 +125,6 @@ def policy_evaluation(sub_section,policy_name='c'):
         if delta <= EPSILON:
             print(f"Stop: {delta}")
 
-
-    # # Plot V(π_TD) and V(π_c) State Values
-    # plt.figure()
-    # plt.plot([v_pi_c[state] for state in states], label="V(π_c)", marker='o', linewidth=1)
-    # plt.plot([values[state] for state in states], label="V(π_TD)", marker='x', linewidth=1)
-    # plt.xlabel("State Index")
-    # plt.ylabel("Value")
-    # plt.title("V(π_TD) and V(π_c) State Values")
-    # plt.legend()
-    # plt.grid(True)
-    # plt.tight_layout()
-    # plt.show()
-
     delta_s0 = abs(v_TD_so - v_pi_c_so)
 
     return max_norm, delta_s0

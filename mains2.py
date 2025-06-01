@@ -146,6 +146,7 @@ def evaluate_policy(policy, graph = True):
 
     if graph:
         plot_final_values(value_history, states)
+        plot_value_history(value_history, states)
 
     return values
 
@@ -166,16 +167,50 @@ def plot_final_values(value_history, states):
     plt.plot(state_labels, final_values, marker='o', linestyle='-', label="V(π_c)")
 
     plt.xticks(rotation=90)
-    plt.xlabel("State", fontsize=12)
-    plt.ylabel("Value", fontsize=12)
-    plt.title("Value Function for π_c (Max Cost Policy)", fontsize=16)
+    plt.xlabel("State", fontsize=18)
+    plt.ylabel("Value", fontsize=18)
+    plt.title("Value Function for π_c (Max Cost Policy)", fontsize=22)
+    plt.xticks(fontsize=16)
+    plt.yticks(fontsize=16)
     plt.grid(True)
     plt.legend()
     plt.tight_layout()
     plt.show()
 
-def modified_policy_iteration(initial_policy, graph):
+def plot_value_history(value_history, states, max_legend_cols=4):
+    value_history = np.array(value_history)
+    assert value_history.shape[1] == len(states), "Mismatch between value history and number of states"
 
+    plt.figure(figsize=(20, 10))
+
+    # Use tab20 for distinct colors
+    base_colors = plt.get_cmap("tab20").colors  # 20 distinct RGB colors
+    colors = base_colors[:16] + base_colors[16:]  # Use full 20
+
+    # 8 unique line styles
+    line_styles = ['-', '--', '-.', ':', (0, (3, 1, 1, 1)), (0, (5, 1)), (0, (1, 1)), (0, (1, 2))]
+
+    # Generate (color, linestyle) pairs
+    combinations = [(color, style) for style in line_styles for color in colors]
+    assert len(combinations) >= len(states), "Not enough unique combinations"
+
+    for i, state in enumerate(states):
+        label = ''.join(['t' if x else 'f' for x in state])
+        color, style = combinations[i]
+        plt.plot(value_history[:, i], label=label, color=color, linestyle=style, linewidth=2)
+
+    plt.xlabel("Iteration",fontsize=18)
+    plt.ylabel("V(state)",fontsize=18)
+    plt.title("Value Function Convergence",fontsize=24)
+    plt.grid(True)
+    plt.legend(ncol=max_legend_cols, fontsize='medium', loc='upper left', bbox_to_anchor=(1.01, 1.0))
+    plt.xticks(fontsize=16)
+    plt.yticks(fontsize=16)
+
+    plt.tight_layout()
+    plt.show()
+
+def modified_policy_iteration(initial_policy, graph):
     # Do modified policy iteration, each step - do one evaluation step of the policy and then update it greedily according to best q value
 
     def find_best_action(states, index, values):
@@ -306,20 +341,24 @@ def policy_iteration(initial_policy, graph):
         value_history = np.array(value_history)
         plt.figure()
         plt.plot(value_history[:, -1])
-        plt.xlabel("Iteration")
-        plt.ylabel("V(S0)")
-        plt.title("Value of S0 Function Convergence During Policy Iteration")
+        plt.xlabel("Iteration", fontsize=14)
+        plt.ylabel("V(S0)", fontsize=14)
+        plt.title("Value of S0 Function Convergence During Policy Iteration", fontsize=16)
+        plt.xticks(fontsize=12)
+        plt.yticks(fontsize=12)
         plt.legend(loc='best', fontsize='small', ncol=2)
         plt.grid(True)
         plt.tight_layout()
         plt.show()
+
+
 
     print(value_history[:, -1])
     return policy, values
 
 if __name__ == '__main__':
     section_0 = False # Draft
-    section_3 = False # Corresponds to question planning 3
+    section_3 = True # Corresponds to question planning 3
     section_4 = True # Corresponds to question planning 4
     section_5 = False # Corresponds to question planning 5
 
