@@ -9,14 +9,14 @@ import numpy as np
 import matplotlib
 
 matplotlib.use('TkAgg')
-from itertools import product
 from matplotlib import pyplot as plt
-import math
 
 import mains2
 from mains2 import generate_states, generate_cost_policy,policy_iteration
+
 # Globals
 EPSILON = 0.00000005
+NUMBER_OF_ITERATIONS = 20000
 
 
 # Global variables
@@ -126,28 +126,30 @@ def policy_evaluation(sub_section,policy_name='c'):
             print(f"Stop: {delta}")
 
 
-    # Plot V(π_TD) and V(π_c) State Values
-    plt.figure()
-    plt.plot([v_pi_c[state] for state in states], label="V(π_c)", marker='o', linewidth=1)
-    plt.plot([values[state] for state in states], label="V(π_TD)", marker='x', linewidth=1)
-    plt.xlabel("State Index")
-    plt.ylabel("Value")
-    plt.title("V(π_TD) and V(π_c) State Values")
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()
+    # # Plot V(π_TD) and V(π_c) State Values
+    # plt.figure()
+    # plt.plot([v_pi_c[state] for state in states], label="V(π_c)", marker='o', linewidth=1)
+    # plt.plot([values[state] for state in states], label="V(π_TD)", marker='x', linewidth=1)
+    # plt.xlabel("State Index")
+    # plt.ylabel("Value")
+    # plt.title("V(π_TD) and V(π_c) State Values")
+    # plt.legend()
+    # plt.grid(True)
+    # plt.tight_layout()
+    # plt.show()
 
-    if sub_section == "sub_section_1":
-        alpha = "1/n_visits"
-    elif sub_section == "sub_section_2":
-        alpha = "0.01"
-    elif sub_section == "sub_section_3":
-        alpha = "10/(100+n_visits)"
+    delta_s0 = abs(v_TD_so - v_pi_c_so)
 
+    return max_norm, delta_s0
+
+
+def plot_graphs(max_norm_1, delta_s0_1, max_norm_2, delta_s0_2, max_norm_3, delta_s0_3):
     # Plot Norm (V(π_TD) - V(π_c)) vs Episode
-    plt.plot(max_norm)
-    plt.title(r"$\|V^{\pi_c} - \hat{V}_{TD}\|_\infty$ over Episodes, alpha: "+ alpha, fontsize=14)
+    plt.plot(max_norm_1, label="1/n_visits")
+    plt.plot(max_norm_2, label="0.01")
+    plt.plot(max_norm_3, label="10/(100+n_visits)")
+
+    plt.title(r"$\|V^{\pi_c} - \hat{V}_{TD}\|_\infty$ over Episodes, for each alpha", fontsize=14)
     plt.xlabel("Episode", fontsize=12)
     plt.ylabel("Infinity Norm Error", fontsize=12)
     plt.legend()
@@ -156,18 +158,18 @@ def policy_evaluation(sub_section,policy_name='c'):
     plt.show()
 
     # Plot V(π_TD)(s0) - V(π_c)(s0) vs Episode
-    delta_s0 = abs(v_TD_so - v_pi_c_so)
     plt.figure()
-    plt.plot(delta_s0)
-    plt.xlabel("Episode",fontsize=12)
-    plt.ylabel("Absolute Error",fontsize=12)
-    plt.title(f"|V(π_TD)(S0) - V(π_c)(S0)| VS Episode, alpha: {alpha}",fontsize=14)
+    plt.plot(delta_s0_1, label="1/n_visits")
+    plt.plot(delta_s0_2, label="0.01")
+    plt.plot(delta_s0_3, label="10/(100+n_visits)")
+
+    plt.xlabel("Episode", fontsize=12)
+    plt.ylabel("Absolute Error", fontsize=12)
+    plt.title(f"|V(π_TD)(S0) - V(π_c)(S0)| VS Episode, for each alpha", fontsize=14)
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
     plt.show()
-
-    return max_norm
 
 if __name__ == '__main__':
 
@@ -176,14 +178,8 @@ if __name__ == '__main__':
     # sub_section_3 - alpha = 10/(100 + no.of visits to Sn)
 
     random.seed(0)
-    max_norm_1 = policy_evaluation("sub_section_1")
-    max_norm_2 = policy_evaluation("sub_section_2")
-    max_norm_3 = policy_evaluation("sub_section_3")
+    max_norm_1, delta_s0_1 = policy_evaluation("sub_section_1")
+    max_norm_2, delta_s0_2 = policy_evaluation("sub_section_2")
+    max_norm_3, delta_s0_3 = policy_evaluation("sub_section_3")
 
-
-
-
-
-
-
-
+    plot_graphs(max_norm_1, delta_s0_1, max_norm_2, delta_s0_2, max_norm_3, delta_s0_3)

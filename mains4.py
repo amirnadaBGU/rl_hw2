@@ -7,7 +7,6 @@ import re
 import pyRDDLGym
 import numpy as np
 import matplotlib
-from plotly.figure_factory.utils import list_of_options
 
 matplotlib.use('TkAgg')
 from itertools import product
@@ -157,18 +156,17 @@ def q_learning(sub_section,opt_values):
             old_policy = copy.deepcopy(policy)
             policy = create_policy_from_q(q_values)
 
-            print(f'visits: {visits[tuple([False]*5)]}')
-            print("Number of different entries:", count_differences(old_policy, policy))
-
-            values = mains2.evaluate_policy(policy, False)
-
             valid_states = [s for s in states if visits[s] > 0]
-            valid_states_indices = convert_from_state_to_index(states, valid_states)
 
             if valid_states:
-                max_norm.append(max(abs(values[s] - opt_values[s]) for s in valid_states_indices))
-                min_q = min(q_values[tuple([False]*5)].values())
-                abs_s0.append(abs(min_q - opt_values[-1]))
+                max_norm.append(
+                    max(
+                        abs(min(q_values[s].values()) - opt_values[convert_from_state_to_index(states, [s])[0]])
+                        for s in valid_states
+                    )
+                )
+                min_q_s0 = min(q_values[tuple([False]*5)].values())
+                abs_s0.append(abs(min_q_s0 - opt_values[-1]))
                 print(counter)
                 print(delta)
             else:
@@ -179,45 +177,48 @@ def q_learning(sub_section,opt_values):
         if counter > 100000:
             break
 
-
-    # Plot V(π_*) and V(π_Q) State Values
-    plt.figure()
-    plt.plot(opt_values, label="V(π_*)", marker='o', linewidth=1)
-    plt.plot(values, label="V(π_Q)", marker='o', linewidth=1)
-    plt.xlabel("State Index")
-    plt.ylabel("Value")
-    plt.title("V(π_*) and V(π_Q) State Values")
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()
-
-    # Plot V(π_TD)(s0) vs V(π_c)(s0)
-    plt.figure()
-    plt.plot(abs_s0, marker='o', linewidth=1)
-    plt.xlabel("Episode")
-    plt.ylabel("Absolute Error")
-    plt.title("|V(π_TD)(S0) - V(π_c)(S0)| VS Episode")
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()
+    return abs_s0, max_norm
 
 
-    if sub_section == "sub_section_1":
-        alpha = "1/n_visits"
-    elif sub_section == "sub_section_2":
-        alpha = "0.01"
-    elif sub_section == "sub_section_3":
-        alpha = "10/(100+n_visits)"
-    plt.plot(max_norm, label=f"{sub_section}, alpha: {alpha}")
-    plt.title(r"$\|V^{\pi_c} - \hat{V}_{TD}\|_\infty$ over Episodes")
+    # # Plot V(π_*) and V(π_Q) State Values
+    # plt.figure()
+    # plt.plot(opt_values, label="V(π_*)", marker='o', linewidth=1)
+    # plt.plot(values, label="V(π_Q)", marker='o', linewidth=1)
+    # plt.xlabel("State Index")
+    # plt.ylabel("Value")
+    # plt.title("V(π_*) and V(π_Q) State Values")
+    # plt.legend()
+    # plt.grid(True)
+    # plt.tight_layout()
+    # plt.show()
+
+def plot_function(abs_s0_1, max_norm_1,abs_s0_2, max_norm_2, abs_s0_3, max_norm_3):
+    episodes = [100 * (i + 1) for i in range(len(abs_s0_1))]
+
+    plt.plot(episodes, max_norm_1, label="1/n_visits")
+    plt.plot(episodes, max_norm_2, label="0.01")
+    plt.plot(episodes, max_norm_3, label="10/(100+n_visits)")
+    plt.title(r"$\left\| V^{\ast} - \hat{V}^{\pi_{\hat{Q}}} \right\|_{\infty}$ over Episodes")
     plt.xlabel("Episode")
     plt.ylabel("Infinity Norm Error")
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
     plt.show()
+
+    plt.figure()
+    plt.plot(episodes, abs_s0_1, label="1/n_visits")
+    plt.plot(episodes, abs_s0_2, label="0.01")
+    plt.plot(episodes, abs_s0_3, label="10/(100+n_visits)")
+    plt.xlabel("Episode")
+    plt.ylabel("Absolute Error")
+    plt.title(r"$\left| V^{\ast}(s_0) - \min_a \hat{Q}(s_0, a) \right|$ vs Episode")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+
 
 if __name__ == '__main__':
 
@@ -227,4 +228,8 @@ if __name__ == '__main__':
 
     random.seed(0)
     opt_policy_values = mains2.evaluate_policy(generate_c_mu_policy(),False)
-    values = q_learning("sub_section_3",opt_policy_values)
+    abs_s0_1, max_norm_1=q_learning("sub_section_1",opt_policy_values)
+    abs_s0_2, max_norm_2=q_learning("sub_section_2",opt_policy_values)
+    abs_s0_3, max_norm_3=q_learning("sub_section_3",opt_policy_values)
+
+    plot_function(abs_s0_1, max_norm_1,abs_s0_2, max_norm_2, abs_s0_3, max_norm_3)
