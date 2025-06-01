@@ -15,7 +15,7 @@ Question 2 - Planning
 """""""""""""""""""""
 
 # Global Paths
-base_path ='./' # '../../Desktop/'
+base_path = '../../Downloads/'  # '../../Desktop/'
 domain_file = base_path + 'jobs_domain.rddl'
 instance_file = base_path + 'jobs_instance.rddl'
 
@@ -43,6 +43,7 @@ def generate_random_policy(states=generate_states()):
         action = [False] * len(state)
         action[action_index] = True
         policy[state_tuple] = action
+
     return policy
 
 def generate_cost_policy(states=generate_states()):
@@ -144,42 +145,38 @@ def evaluate_policy(policy, graph = True):
         values = new_values.copy()
 
     if graph:
-        plot_value_history(value_history, states)
+        plot_final_values(value_history, states)
 
     return values
 
-def plot_value_history(value_history, states, max_legend_cols=4):
-    # Plotting function
+def plot_final_values(value_history, states):
+
+    # Plot the final value for each state under policy π_c
 
     value_history = np.array(value_history)
     assert value_history.shape[1] == len(states), "Mismatch between value history and number of states"
 
-    plt.figure(figsize=(20, 10))
+    final_values = value_history[-1]  # Take the final value of each state
 
-    base_colors = plt.get_cmap("tab20").colors
-    colors = base_colors[:16] + base_colors[16:]
+    # Convert states to string labels like 'tftff'
+    state_labels = [''.join(['T' if x else 'F' for x in state]) for state in states]
 
-    line_styles = ['-', '--', '-.', ':', (0, (3, 1, 1, 1)), (0, (5, 1)), (0, (1, 1)), (0, (1, 2))]
+    # Plot as a line+marker plot
+    plt.figure(figsize=(12, 6))
+    plt.plot(state_labels, final_values, marker='o', linestyle='-', label="V(π_c)")
 
-    combinations = [(color, style) for style in line_styles for color in colors]
-    assert len(combinations) >= len(states), "Not enough unique combinations"
-
-    for i, state in enumerate(states):
-        label = ''.join(['t' if x else 'f' for x in state])
-        color, style = combinations[i]
-        plt.plot(value_history[:, i], label=label, color=color, linestyle=style, linewidth=2)
-
-    plt.xlabel("Iteration")
-    plt.ylabel("V(state)")
-    plt.title("Value Function Convergence")
+    plt.xticks(rotation=90)
+    plt.xlabel("State", fontsize=12)
+    plt.ylabel("Value", fontsize=12)
+    plt.title("Value Function for π_c (Max Cost Policy)", fontsize=16)
     plt.grid(True)
-    plt.legend(ncol=max_legend_cols, fontsize='small', loc='upper left', bbox_to_anchor=(1.01, 1.0))
+    plt.legend()
     plt.tight_layout()
     plt.show()
 
-def policy_iteration(initial_policy, graph):
+def modified_policy_iteration(initial_policy, graph):
 
-    # Do policy iteration, each step - evaluate the policy and then update it greedily according to best q value
+    # Do modified policy iteration, each step - do one evaluation step of the policy and then update it greedily according to best q value
 
     def find_best_action(states, index, values):
         # Function that returns optimal action from a state
@@ -246,18 +243,90 @@ def policy_iteration(initial_policy, graph):
         plt.tight_layout()
         plt.show()
 
+    print(value_history[:, -1])
+    return policy, values
+
+def policy_iteration(initial_policy, graph):
+
+    # Do policy iteration, each step - evaluate the policy and then update it greedily according to best q value
+
+    def find_best_action(states, index, values):
+        # Function that returns optimal action from a state
+        state = states[index]
+        false_indices = [i for i, val in enumerate(state) if not val]
+        max_Q = -float('inf')
+        best_action = [False] * len(state)
+
+        if not false_indices:
+            return best_action
+
+        for i in false_indices:
+            # Iterate over all possible actions
+            action = [False] * len(state)
+            action[i] = True
+
+            # Calculate q value for state,action combo:
+            q = calc_value(states, index, action, values)
+            if q > max_Q:
+                max_Q = q
+                best_action = action
+
+        return best_action
+
+    delta = float('inf')
+    states = generate_states()
+
+    # Loop:
+    values = init_values(states)
+    new_values = values.copy()
+    policy = initial_policy.copy()
+    new_policy = policy.copy()
+    value_history = [values.copy()]
+
+    while delta > EPSILON:
+
+        # Update values according to policy
+        new_values = evaluate_policy(policy, graph=False)
+
+        # Policy improvement
+        for index, state in enumerate(states):
+            best_action = find_best_action(states, index, new_values)
+            new_policy[state] = best_action
+
+        # Calculates stopping condition and saves history for plotting
+        delta = np.max(np.abs(np.array(values) - np.array(new_values)))
+        value_history.append(new_values.copy())
+
+        # Update values and policy
+        values = new_values.copy()
+        policy = new_policy.copy()
+
+    # Plot value function convergence
+    if graph:
+        value_history = np.array(value_history)
+        plt.figure()
+        plt.plot(value_history[:, -1])
+        plt.xlabel("Iteration")
+        plt.ylabel("V(S0)")
+        plt.title("Value of S0 Function Convergence During Policy Iteration")
+        plt.legend(loc='best', fontsize='small', ncol=2)
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
+
+    print(value_history[:, -1])
     return policy, values
 
 if __name__ == '__main__':
     section_0 = False # Draft
     section_3 = False # Corresponds to question planning 3
-    section_4 = False # Corresponds to question planning 4
-    section_5 = True  # Corresponds to question planning 5
+    section_4 = True # Corresponds to question planning 4
+    section_5 = False # Corresponds to question planning 5
 
     if section_0:
         env = pyRDDLGym.make(domain=domain_file, instance=instance_file)
 
-        job_names = list(env.action_space.keys()) #give me all that is not done
+        job_names = list(env.action_space.keys())
         tc = 0
         for job in job_names:
             action = {job: False for job in job_names}
@@ -296,6 +365,7 @@ if __name__ == '__main__':
             graph = False
         else:
             graph = True
+
         optimal_policy, V_star = policy_iteration(initial_policy=cost_policy, graph= graph)
         print(optimal_policy)
 
