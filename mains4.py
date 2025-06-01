@@ -31,6 +31,7 @@ instance_file = base_path + 'jobs_instance.rddl'
 
 
 def generate_actions_per_state(state):
+    # Return list of avaliable actions per state
     list_of_actions = []
     false_indices = [i for i, val in enumerate(state) if val == False]
     if not false_indices: # All jobs are True, then the action is all False
@@ -44,6 +45,7 @@ def generate_actions_per_state(state):
     return list_of_actions
 
 def generate_actions_and_init_q(states):
+    # Initializing q matrix with zeros
     dict_of_q_values = {}
     for state in states:
         actions = generate_actions_per_state(state)
@@ -53,27 +55,32 @@ def generate_actions_and_init_q(states):
     return dict_of_q_values
 
 def get_optimal_action_according_to_q(q_values,state):
+    # Choose greedy action according to q values
     best_action = max(q_values[state], key=q_values[state].get)
     return best_action
 
 def choose_random_action(state):
+    # Random policy action
     possible_actions = generate_actions_per_state(state)
     random_action = random.choice(possible_actions)
     return random_action
 
 def update_q(q_values, state,action, next_state, cost,alpha):
+    # Update entry in  values matrix according to the q learning formula
     opt_q_next_state = q_values[next_state][get_optimal_action_according_to_q(q_values, next_state)]
     current_q = q_values[state][action]
     new_value = q_values[state][action] + alpha * (cost + opt_q_next_state - current_q)
     return new_value
 
 def create_policy_from_q(q_values):
+    # Creates policy by acting greedly according to Q
     policy = {}
     for state in q_values.keys():
         policy[state] = get_optimal_action_according_to_q(q_values, state)
     return policy
 
 def convert_from_state_to_index(states, available_states):
+    # Function that return the location of a state in the state dictionary
     indexes = []
     for s in available_states:
         if s in states:
@@ -81,7 +88,7 @@ def convert_from_state_to_index(states, available_states):
     return indexes
 
 def count_differences(list1, list2):
-    # Ensure both lists are the same length
+    # Function used for debug policy convergence - Not in use
     if len(list1) != len(list2):
         raise ValueError("Lists must be the same length.")
 
@@ -89,6 +96,8 @@ def count_differences(list1, list2):
     return sum(1 for key in set(list1.keys()).union(list2.keys()) if list1.get(key) != list2.get(key))
 
 def q_learning(sub_section,opt_values):
+    # function that do q_learning procedure
+
     env = pyRDDLGym.make(domain=domain_file, instance=instance_file)
     delta = float('inf')
     job_names = list(env.action_space.keys())  # give me all that is not done
@@ -100,28 +109,27 @@ def q_learning(sub_section,opt_values):
     abs_s0 = []
     policy = create_policy_from_q(q_values)
 
+    # Episodes iteration:
     while delta > EPSILON:
         old_q_values = copy.deepcopy(q_values)
         counter+=1
-        # Initial state
         state = env.reset()[0]
         state = convert_sim_state_to_bool_state(state)
 
         for i in range(env.horizon):
+            # Epsilon greedy method
             if random.random() < EXPLORATION:
                 action = choose_random_action(state)
             else:
                 action = get_optimal_action_according_to_q(q_values,state)
 
             action_sim = convert_action_to_sim_action_dict(job_names, action)
-            # Step the environment
             next_state, cost, done, _, _ = env.step(action_sim)
-            # print(next_state)
 
+            # Update visits
             visits[state] += 1
-            alpha = 0.01
 
-
+            # Determine update rate
             if sub_section == "sub_section_1":
                 alpha = 1 / visits[state]
 
@@ -130,8 +138,12 @@ def q_learning(sub_section,opt_values):
 
             elif sub_section == "sub_section_3":
                 alpha = 10 / (100 + visits[state])
+            else:
+                print("Error - no appropriate sub-section")
 
             next_state = convert_sim_state_to_bool_state(next_state)
+
+            # Do single q_value update
             q_values[state][action] = update_q(copy.deepcopy(q_values), state, action, next_state, cost,alpha)
 
 
@@ -140,6 +152,7 @@ def q_learning(sub_section,opt_values):
             if done:
                 break
 
+        # Calculating stopping criteria
         max_delta = 0.0
         for state in q_values:
             for action in q_values[state]:
@@ -152,12 +165,9 @@ def q_learning(sub_section,opt_values):
         else:
             delta = max_delta
 
+        # Printing and data storage every 100 episodes
         if counter % 100 == 0:
-            old_policy = copy.deepcopy(policy)
-            policy = create_policy_from_q(q_values)
-
             valid_states = [s for s in states if visits[s] > 0]
-
             if valid_states:
                 max_norm.append(
                     max(
@@ -173,7 +183,7 @@ def q_learning(sub_section,opt_values):
                 max_norm.append(0)  # Fallback in case nothing was visited yet
                 print('i am here')
 
-
+        # Hard Stopping criteria
         if counter > 100000:
             break
 
