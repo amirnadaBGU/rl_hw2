@@ -312,28 +312,28 @@ def policy_iteration(initial_policy, graph):
     states = generate_states()
 
     # Loop:
-    values = init_values(states)
-    new_values = values.copy()
     policy = initial_policy.copy()
     new_policy = policy.copy()
-    value_history = [values.copy()]
+    value_history = []
 
     while delta > EPSILON:
 
         # Update values according to policy
-        new_values = evaluate_policy(policy, graph=False)
+        values = evaluate_policy(policy, graph=False)
 
         # Policy improvement
         for index, state in enumerate(states):
-            best_action = find_best_action(states, index, new_values)
+            best_action = find_best_action(states, index, values)
             new_policy[state] = best_action
 
         # Calculates stopping condition and saves history for plotting
-        delta = np.max(np.abs(np.array(values) - np.array(new_values)))
-        value_history.append(new_values.copy())
+        new_values = evaluate_policy(new_policy, graph=False)
+
+        delta = np.max(np.abs(np.array(new_values) - np.array(values)))
+        value_history.append(values.copy())
 
         # Update values and policy
-        values = new_values.copy()
+        values = values.copy()
         policy = new_policy.copy()
 
     # Plot value function convergence
@@ -358,7 +358,7 @@ def policy_iteration(initial_policy, graph):
 
 if __name__ == '__main__':
     section_0 = False # Draft
-    section_3 = True # Corresponds to question planning 3
+    section_3 = False # Corresponds to question planning 3
     section_4 = True # Corresponds to question planning 4
     section_5 = False # Corresponds to question planning 5
 
