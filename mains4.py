@@ -95,7 +95,7 @@ def count_differences(list1, list2):
     # Count differences
     return sum(1 for key in set(list1.keys()).union(list2.keys()) if list1.get(key) != list2.get(key))
 
-def q_learning(sub_section,opt_values):
+def q_learning(sub_section,opt_values,exploration = EXPLORATION):
     # function that do q_learning procedure
 
     env = pyRDDLGym.make(domain=domain_file, instance=instance_file)
@@ -118,7 +118,7 @@ def q_learning(sub_section,opt_values):
 
         for i in range(env.horizon):
             # Epsilon greedy method
-            if random.random() < EXPLORATION:
+            if random.random() < exploration:
                 action = choose_random_action(state)
             else:
                 action = get_optimal_action_according_to_q(q_values,state)
@@ -171,11 +171,11 @@ def q_learning(sub_section,opt_values):
             if valid_states:
                 max_norm.append(
                     max(
-                        abs(min(q_values[s].values()) - opt_values[convert_from_state_to_index(states, [s])[0]])
+                        abs(max(q_values[s].values()) - opt_values[convert_from_state_to_index(states, [s])[0]])
                         for s in valid_states
                     )
                 )
-                min_q_s0 = min(q_values[tuple([False]*5)].values())
+                min_q_s0 = max(q_values[tuple([False]*5)].values())
                 abs_s0.append(abs(min_q_s0 - opt_values[-1]))
                 print(counter)
                 print(delta)
@@ -202,7 +202,7 @@ def q_learning(sub_section,opt_values):
     # plt.tight_layout()
     # plt.show()
 
-def plot_function(abs_s0_1, max_norm_1,abs_s0_2, max_norm_2, abs_s0_3, max_norm_3):
+def plot_function3(abs_s0_1, max_norm_1,abs_s0_2, max_norm_2, abs_s0_3, max_norm_3):
     episodes = [100 * (i + 1) for i in range(len(abs_s0_1))]
 
     plt.plot(episodes, max_norm_1, label="1/n_visits")
@@ -222,7 +222,31 @@ def plot_function(abs_s0_1, max_norm_1,abs_s0_2, max_norm_2, abs_s0_3, max_norm_
     plt.plot(episodes, abs_s0_3, label="10/(100+n_visits)")
     plt.xlabel("Episode")
     plt.ylabel("Absolute Error")
-    plt.title(r"$\left| V^{\ast}(s_0) - \min_a \hat{Q}(s_0, a) \right|$ vs Episode")
+    plt.title(r"$\left| V^{\ast}(s_0) - \max_a \hat{Q}(s_0, a) \right|$ vs Episode")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+def plot_function2(abs_s0_1, max_norm_1,abs_s0_2, max_norm_2,exp1,exp2):
+    episodes = [100 * (i + 1) for i in range(len(abs_s0_1))]
+
+    plt.plot(episodes, max_norm_1, label=f"Exploration Rate: {exp1}")
+    plt.plot(episodes, max_norm_2, label=f"Exploration Rate: {exp2}")
+    plt.title(r"$\left\| V^{\ast} - \hat{V}^{\pi_{\hat{Q}}} \right\|_{\infty}$ over Episodes")
+    plt.xlabel("Episode")
+    plt.ylabel("Infinity Norm Error")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+    plt.figure()
+    plt.plot(episodes, abs_s0_1, label=f"Exploration Rate: {exp1}")
+    plt.plot(episodes, abs_s0_2, label=f"Exploration Rate: {exp2}")
+    plt.xlabel("Episode")
+    plt.ylabel("Absolute Error")
+    plt.title(r"$\left| V^{\ast}(s_0) - \max_a \hat{Q}(s_0, a) \right|$ vs Episode")
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
@@ -235,11 +259,18 @@ if __name__ == '__main__':
     # sub_section_1 - alpha = 1/no.of visits to Sn
     # sub_section_2 - alpha = 0.01
     # sub_section_3 - alpha = 10/(100 + no.of visits to Sn)
-
-    random.seed(0)
-    opt_policy_values = mains2.evaluate_policy(generate_c_mu_policy(),False)
-    abs_s0_1, max_norm_1=q_learning("sub_section_1",opt_policy_values)
-    abs_s0_2, max_norm_2=q_learning("sub_section_2",opt_policy_values)
-    abs_s0_3, max_norm_3=q_learning("sub_section_3",opt_policy_values)
-
-    plot_function(abs_s0_1, max_norm_1,abs_s0_2, max_norm_2, abs_s0_3, max_norm_3)
+    s4 = False
+    s5 = True
+    if s4:
+        random.seed(0)
+        opt_policy_values = mains2.evaluate_policy(generate_c_mu_policy(),False)
+        abs_s0_1, max_norm_1=q_learning("sub_section_1",opt_policy_values)
+        abs_s0_2, max_norm_2=q_learning("sub_section_2",opt_policy_values)
+        abs_s0_3, max_norm_3=q_learning("sub_section_3",opt_policy_values)
+        plot_function3(abs_s0_1, max_norm_1,abs_s0_2, max_norm_2, abs_s0_3, max_norm_3)
+    if s5:
+        random.seed(0)
+        opt_policy_values = mains2.evaluate_policy(generate_c_mu_policy(),False)
+        abs_s0_ep_01, max_norm_ep_01=q_learning("sub_section_3",opt_policy_values,exploration=0.1)
+        abs_s0_ep_001, max_norm_ep_001=q_learning("sub_section_3",opt_policy_values,exploration=0.01)
+        plot_function2(abs_s0_ep_01, max_norm_ep_01,abs_s0_ep_001, max_norm_ep_001, 0.1, 0.01)
