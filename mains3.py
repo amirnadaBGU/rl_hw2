@@ -1,18 +1,13 @@
-import itertools
 import random
 import re
 
-# from pipes import stepkinds
-
 import pyRDDLGym
-import numpy as np
 import matplotlib
 
 matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
 
-import mains2
-from mains2 import generate_states, generate_cost_policy,policy_iteration
+from mains2 import generate_states, generate_cost_policy,policy_iteration, evaluate_policy
 
 # Globals
 EPSILON = 0.00000005
@@ -61,7 +56,7 @@ def policy_evaluation(sub_section,policy_name='c'):
         print('print not valid input')
 
     max_norm = []
-    v_pi_c_raw = mains2.evaluate_policy(policy, False)
+    v_pi_c_raw = evaluate_policy(policy, False)
     v_pi_c = dict(zip(states, v_pi_c_raw))
 
     v_pi_c_so = v_pi_c[tuple([False]*len(states[0]))] # Scalar
@@ -164,7 +159,7 @@ if __name__ == '__main__':
     # sub_section_2 - alpha = 0.01
     # sub_section_3 - alpha = 10/(100 + no.of visits to Sn)
 
-    random.seed(0)
+    #random.seed(0)
     max_norm_1, delta_s0_1 = policy_evaluation("sub_section_1")
     max_norm_2, delta_s0_2 = policy_evaluation("sub_section_2")
     max_norm_3, delta_s0_3 = policy_evaluation("sub_section_3")

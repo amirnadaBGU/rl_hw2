@@ -1,28 +1,22 @@
 import copy
-import itertools
 import random
-import re
 
 
 import pyRDDLGym
-import numpy as np
 import matplotlib
 
 matplotlib.use('TkAgg')
-from itertools import product
 from matplotlib import pyplot as plt
-import math
-from mains2 import generate_c_mu_policy,generate_states
+from mains2 import generate_c_mu_policy,generate_states, evaluate_policy
 from mains3 import convert_action_to_sim_action_dict,convert_sim_state_to_bool_state
-import mains2
 
 """""""""""""""""""""""""""
 Question 2   - Learning 2,3
 """""""""""""""""""""""""""
 
 # Globals
-EPSILON = 0.00005
-EXPLORATION = 0.1
+EPSILON = 0.0005
+NUMBER_OF_ITERATIONS = 100000
 
 # Global Paths
 base_path ='./' # '../../Desktop/'
@@ -95,7 +89,7 @@ def count_differences(list1, list2):
     # Count differences
     return sum(1 for key in set(list1.keys()).union(list2.keys()) if list1.get(key) != list2.get(key))
 
-def q_learning(sub_section,opt_values,exploration = EXPLORATION):
+def q_learning(sub_section,opt_values, exploration):
     # function that do q_learning procedure
 
     env = pyRDDLGym.make(domain=domain_file, instance=instance_file)
@@ -107,7 +101,6 @@ def q_learning(sub_section,opt_values,exploration = EXPLORATION):
     counter = 0
     max_norm = []
     abs_s0 = []
-    policy = create_policy_from_q(q_values)
 
     # Episodes iteration:
     while delta > EPSILON:
@@ -118,7 +111,8 @@ def q_learning(sub_section,opt_values,exploration = EXPLORATION):
 
         for i in range(env.horizon):
             # Epsilon greedy method
-            if random.random() < exploration:
+            rnd = random.random()
+            if rnd < exploration:
                 action = choose_random_action(state)
             else:
                 action = get_optimal_action_according_to_q(q_values,state)
@@ -175,32 +169,19 @@ def q_learning(sub_section,opt_values,exploration = EXPLORATION):
                         for s in valid_states
                     )
                 )
-                min_q_s0 = max(q_values[tuple([False]*5)].values())
-                abs_s0.append(abs(min_q_s0 - opt_values[-1]))
+                max_q_s0 = max(q_values[tuple([False]*5)].values())
+                abs_s0.append(abs(max_q_s0 - opt_values[-1]))
                 print(counter)
                 print(delta)
             else:
                 max_norm.append(0)  # Fallback in case nothing was visited yet
-                print('i am here')
 
         # Hard Stopping criteria
-        if counter > 100000:
+        if counter > NUMBER_OF_ITERATIONS:
             break
 
     return abs_s0, max_norm
 
-
-    # # Plot V(π_*) and V(π_Q) State Values
-    # plt.figure()
-    # plt.plot(opt_values, label="V(π_*)", marker='o', linewidth=1)
-    # plt.plot(values, label="V(π_Q)", marker='o', linewidth=1)
-    # plt.xlabel("State Index")
-    # plt.ylabel("Value")
-    # plt.title("V(π_*) and V(π_Q) State Values")
-    # plt.legend()
-    # plt.grid(True)
-    # plt.tight_layout()
-    # plt.show()
 
 def plot_function3(abs_s0_1, max_norm_1,abs_s0_2, max_norm_2, abs_s0_3, max_norm_3):
     episodes = [100 * (i + 1) for i in range(len(abs_s0_1))]
@@ -254,23 +235,24 @@ def plot_function2(abs_s0_1, max_norm_1,abs_s0_2, max_norm_2,exp1,exp2):
 
 
 
+
 if __name__ == '__main__':
 
     # sub_section_1 - alpha = 1/no.of visits to Sn
     # sub_section_2 - alpha = 0.01
     # sub_section_3 - alpha = 10/(100 + no.of visits to Sn)
-    s4 = False
+    s4 = True
     s5 = True
     if s4:
         random.seed(0)
-        opt_policy_values = mains2.evaluate_policy(generate_c_mu_policy(),False)
-        abs_s0_1, max_norm_1=q_learning("sub_section_1",opt_policy_values)
-        abs_s0_2, max_norm_2=q_learning("sub_section_2",opt_policy_values)
-        abs_s0_3, max_norm_3=q_learning("sub_section_3",opt_policy_values)
-        plot_function3(abs_s0_1, max_norm_1,abs_s0_2, max_norm_2, abs_s0_3, max_norm_3)
+        opt_policy_values = evaluate_policy(generate_c_mu_policy(), False)
+        abs_s0_1, max_norm_1 = q_learning("sub_section_1", opt_policy_values, 0.1)
+        abs_s0_2, max_norm_2 = q_learning("sub_section_2", opt_policy_values, 0.1)
+        abs_s0_3, max_norm_3 = q_learning("sub_section_3", opt_policy_values, 0.1)
+        plot_function3(abs_s0_1, max_norm_1, abs_s0_2, max_norm_2, abs_s0_3, max_norm_3)
     if s5:
         random.seed(0)
-        opt_policy_values = mains2.evaluate_policy(generate_c_mu_policy(),False)
-        abs_s0_ep_01, max_norm_ep_01=q_learning("sub_section_3",opt_policy_values,exploration=0.1)
-        abs_s0_ep_001, max_norm_ep_001=q_learning("sub_section_3",opt_policy_values,exploration=0.01)
-        plot_function2(abs_s0_ep_01, max_norm_ep_01,abs_s0_ep_001, max_norm_ep_001, 0.1, 0.01)
+        opt_policy_values = evaluate_policy(generate_c_mu_policy(), False)
+        abs_s0_ep_01, max_norm_ep_01 = q_learning("sub_section_3", opt_policy_values, exploration=0.1)
+        abs_s0_ep_001, max_norm_ep_001 = q_learning("sub_section_3", opt_policy_values, exploration=0.01)
+        plot_function2(abs_s0_ep_01, max_norm_ep_01, abs_s0_ep_001, max_norm_ep_001, 0.1, 0.01)

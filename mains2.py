@@ -61,9 +61,9 @@ def generate_cost_policy(states=generate_states()):
         action_index = 0
 
         for i in false_indices:
-            if COSTS[i] < max_cost:
+            if abs(COSTS[i]) > max_cost:
                 action_index = i
-                max_cost = COSTS[i]
+                max_cost = abs(COSTS[i])
 
         action = [False] * len(state)
         action[action_index] = True
