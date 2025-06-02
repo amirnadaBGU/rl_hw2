@@ -14,7 +14,7 @@ instance_file = base_path + 'bandit_instance.rddl'
 
 # GLOBALS
 HORIZON = 20000 # suppose to be 20000
-N_LOOPS = 1 # suppose to be 20
+N_LOOPS = 20 # suppose to be 20
 MEAN_BEST_REWARD_PER_ACTION = 100.0/101.0 # for regret calculations
 
 def do_single_run_ucb1_policy():
